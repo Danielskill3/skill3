@@ -1,4 +1,6 @@
-supabase
 Flask
+flask-cors
+authlib
 supabase
+python-dotenv
 email-validator
