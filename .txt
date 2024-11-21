@@ -3,3 +3,6 @@ curl -X POST "http://localhost:5000/reset-password" \
 -d '{
     "email": "mosesmichael878@gmail.com"
 }'
+
+
+rm -rf /home/michael/.cache/google-chrome/*
