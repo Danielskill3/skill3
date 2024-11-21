@@ -1,2 +1,16 @@
-/.cache/google-chrome/
+cache/google-chrome/
 .env
+/home/michael/.cache/google-chrome
+/home/michael/.cache/google-chrome/Profile 1/Cache/Cache_Data/Index
+/home/michael/.config/google-chrome/Default/Cookies
+/home/michael/.config/google-chrome/Default/GaiaCookieStore
+/home/michael/.config/google-chrome/Default/Login Data
+/home/michael/.config/google-chrome/Default/Web Data
+/home/michael/.local/share/applications/chromium-browser.desktop
+/home/michael/.mozilla/firefox/*.default-release/sessionstore.js
+/home/michael/.mozilla/firefox/*.default-release/storage/default/http+++www.google.com/*
+/home/michael/.mozilla/firefox/*.default-release/storage/default/www.google.com/*
+/home/michael/.mozilla/firefox/*.default-release/webappsstore.sqlite
+/home/michael/.mozilla/firefox/*.default-release/xulstore.json
+/home/michael/.var/app/com.github.Eloston.UngoogledChromium/config/ungoogled-chromium/*
+/home/michael/.var/app/org.chromium.Chromium/data/chrome/Default/*
