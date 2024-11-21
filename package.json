@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@supabase/supabase-js": "^2.46.1",
+    "next-auth": "^4.24.10"
+  },
+
+
+"scripts": {
+  "dev": "next dev"
+}
+}
