@@ -5,7 +5,7 @@ supabase
 python-dotenv
 email-validator
 requests
-
+flask-jwt-extended
 
 flask-talisman
 
