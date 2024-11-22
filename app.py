@@ -8,6 +8,7 @@ from authlib.integrations.flask_client import OAuth
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from email_validator import validate_email, EmailNotValidError
+from flask_talisman import Talisman
 
 # Load environment variables
 load_dotenv()
@@ -19,8 +20,17 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', os.urandom(24))  
 
+Talisman(app, content_security_policy=None)
+
+# Add these headers to your responses
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
 # CORS setup for React
-CORS(app, resources={r"/*": {"origins": os.getenv('FRONTEND_URL', 'http://localhost:3000')}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": os.getenv('FRONTEND_URL', 'http://localhost:5173')}}, supports_credentials=True)
 
 # Initialize Supabase client
 supabase_url = os.getenv('SUPABASE_URL')
