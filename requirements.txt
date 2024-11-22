@@ -9,3 +9,5 @@ requests
 
 flask-talisman
 
+sqlalchemy
+flask-jwt
