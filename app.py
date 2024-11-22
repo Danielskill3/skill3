@@ -149,9 +149,9 @@ def linkedin_login():
 
 @app.route('/api/auth/linkedin/callback')
 def linkedin_callback():
-    """Handle LinkedIn OpenID Connect callback."""
+    """Handle LinkedIn OAuth callback with detailed profile retrieval."""
     try:
-        # Retrieve PKCE verifier
+        # Retrieve state and validate CSRF protection
         state = request.args.get('state')
         stored_state = session.pop('oauth_state', None)
         if stored_state != state:
@@ -160,6 +160,7 @@ def linkedin_callback():
                 "message": "CSRF attack detected"
             }, 400)
 
+        # Retrieve PKCE code verifier
         code_verifier = session.pop('code_verifier', None)
         if not code_verifier:
             raise AuthError({
@@ -172,20 +173,34 @@ def linkedin_callback():
         if not token:
             raise AuthError({
                 "code": "token_error",
-                "message": "Failed to obtain token"
+                "message": "Failed to obtain access token"
             }, 400)
 
-        # Get user info from ID token
-        userinfo = linkedin.parse_id_token(token)
-        email = userinfo.get('email')
-        
-        if not email:
+        # Get detailed user profile from LinkedIn API
+        profile_response = linkedin.get(
+            'https://api.linkedin.com/v2/me', 
+            headers={'Authorization': f'Bearer {token["access_token"]}'}
+        )
+        profile_data = profile_response.json()
+
+        # Get email separately
+        email_response = linkedin.get(
+            'https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))', 
+            headers={'Authorization': f'Bearer {token["access_token"]}'}
+        )
+        email_data = email_response.json()
+
+        # Extract email with robust error handling
+        try:
+            email = email_data['elements'][0]['handle~']['emailAddress']
+        except (KeyError, IndexError) as e:
+            app.logger.error(f"Failed to extract email from LinkedIn response: {e}")
             raise AuthError({
-                "code": "missing_email",
-                "message": "Email not provided by LinkedIn"
+                "code": "email_retrieval_error",
+                "message": "Could not retrieve email from LinkedIn"
             }, 400)
 
-        # Sign in with Supabase (OAuth)
+        # Sign in with Supabase OAuth
         auth_response = supabase.auth.sign_in_with_oauth({
             "provider": "linkedin",
             "access_token": token['access_token'],
@@ -198,20 +213,23 @@ def linkedin_callback():
                 "message": auth_response.error.message
             }, 400)
 
-        # Update user data in Supabase
+        # Enhanced user data mapping
         user_data = {
             "id": auth_response.user.id,
             "email": email,
-            "linkedin_id": userinfo.get('sub'),
-            "first_name": userinfo.get('given_name'),
-            "last_name": userinfo.get('family_name'),
+            "linkedin_id": profile_data.get('id'),
+            "first_name": profile_data.get('firstName', {}).get('localized', {}).get('en_US', ''),
+            "last_name": profile_data.get('lastName', {}).get('localized', {}).get('en_US', ''),
+            "profile_picture": profile_data.get('profilePicture', {}).get('displayImage', ''),
+            "headline": profile_data.get('headline', {}).get('localized', {}).get('en_US', ''),
             "last_login": datetime.now(datetime.timezone.utc).isoformat()
         }
 
+        # Upsert user data in Supabase
         supabase.table('users').upsert(user_data).execute()
 
         return jsonify({
-            "message": "Login successful",
+            "message": "LinkedIn login successful",
             "session": auth_response.session,
             "user": user_data
         })
@@ -219,12 +237,14 @@ def linkedin_callback():
     except AuthError as e:
         raise e
     except Exception as e:
-        app.logger.error(f"LinkedIn callback error: {str(e)}")
+        # Comprehensive error logging
+        app.logger.error(f"Detailed LinkedIn callback error: {str(e)}")
         raise AuthError({
-            "code": "callback_error",
-            "message": f"Authorization failed: {str(e)}"
+            "code": "linkedin_callback_detailed_error",
+            "message": f"Comprehensive authorization failure: {str(e)}"
         }, 500)
-
+    
+    
 @app.route('/register', methods=['POST'])
 def register():
     """Register a new user with email and password."""
