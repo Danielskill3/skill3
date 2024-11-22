@@ -1,5 +1,8 @@
 # app.py
 from flask import Flask, request, jsonify, session, redirect, url_for
+import base64
+import hashlib
+import secrets
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, get_jwt_identity, jwt_required
 from datetime import datetime
@@ -12,9 +15,15 @@ from email_validator import validate_email, EmailNotValidError
 from supabase import create_client, Client
 from flask_talisman import Talisman
 from authlib.integrations.flask_client import OAuth
-from authlib.oauth2.rfc7636 import create_s256_code_challenge, create_code_verifier
+#import authlib.oauth2.rfc7636 
 
-# Load environment variables
+def generate_pkce_pair():
+    """Generate PKCE code verifier and code challenge."""
+    code_verifier = secrets.token_urlsafe(64)
+    code_challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(code_verifier.encode()).digest()
+    ).rstrip(b'=').decode('utf-8')
+    return code_verifier, code_challenge
 load_dotenv()
 
 # Initialize Flask app
@@ -109,10 +118,9 @@ def linkedin_login():
     """Initiate LinkedIn OpenID Connect flow."""
     try:
         # Generate PKCE challenge
-        code_verifier = create_code_verifier()
-        code_challenge = create_s256_code_challenge(code_verifier)
+        code_verifier, code_challenge = generate_pkce_pair()
         
-        # Store PKCE verifier in session
+        # Store PKCE code verifier in session
         session['code_verifier'] = code_verifier
         
         redirect_uri = os.getenv('LINKEDIN_REDIRECT_URI')
