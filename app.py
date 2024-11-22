@@ -13,13 +13,15 @@ from logging.handlers import RotatingFileHandler
 import re
 from email_validator import validate_email, EmailNotValidError
 from supabase import create_client, Client
-from flask_talisman import Talisman
+#from flask_talisman import Talisman
 from authlib.integrations.flask_client import OAuth
+
+
 #import authlib.oauth2.rfc7636 
 
 def generate_pkce_pair():
-    """Generate PKCE code verifier and code challenge."""
-    code_verifier = secrets.token_urlsafe(64)
+    code_verifier = secrets.token_urlsafe(32)
+    # Create a code challenge from the code verifier
     code_challenge = base64.urlsafe_b64encode(
         hashlib.sha256(code_verifier.encode()).digest()
     ).rstrip(b'=').decode('utf-8')
@@ -28,10 +30,10 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY')
+app.secret_key = os.urandom(24).hex()
 
 # Security headers
-Talisman(app, content_security_policy=None)
+#Talisman(app, content_security_policy=None)
 
 # Setup CORS
 CORS(app, resources={r"/*": {
@@ -60,15 +62,18 @@ supabase: Client = create_client(
 oauth = OAuth(app)
 linkedin = oauth.register(
     name='linkedin',
-    server_metadata_url='https://www.linkedin.com/.well-known/openid-configuration',
     client_id=os.getenv("LINKEDIN_CLIENT_ID"),
     client_secret=os.getenv("LINKEDIN_CLIENT_SECRET"),
+    access_token_url='https://www.linkedin.com/oauth/v2/accessToken',
+    authorize_url='https://www.linkedin.com/oauth/v2/authorization',
     client_kwargs={
-        'scope': 'openid profile email',
-        'response_type': 'code',
+        'scope': 'r_liteprofile r_emailaddress',
         'token_endpoint_auth_method': 'client_secret_post'
-    }
+    },
+    userinfo_endpoint='https://api.linkedin.com/v2/userinfo'
 )
+
+
 
 # Setup logging
 if not os.path.exists('logs'):
@@ -115,7 +120,7 @@ def validate_password(password):
 # Routes
 @app.route('/api/auth/linkedin/login')
 def linkedin_login():
-    """Initiate LinkedIn OpenID Connect flow."""
+    """Initiate LinkedIn OAuth flow with PKCE."""
     try:
         # Generate PKCE challenge
         code_verifier, code_challenge = generate_pkce_pair()
@@ -123,11 +128,17 @@ def linkedin_login():
         # Store PKCE code verifier in session
         session['code_verifier'] = code_verifier
         
+        # Generate state parameter for CSRF protection
+        state = secrets.token_urlsafe(32)
+        session['oauth_state'] = state
+        
         redirect_uri = os.getenv('LINKEDIN_REDIRECT_URI')
         return linkedin.authorize_redirect(
             redirect_uri=redirect_uri,
             code_challenge=code_challenge,
-            code_challenge_method='S256'
+            code_challenge_method='S256',
+            state=state,
+            scope='r_liteprofile r_emailaddress'  # LinkedIn-specific scopes
         )
     except Exception as e:
         app.logger.error(f"LinkedIn login error: {str(e)}")
@@ -141,6 +152,14 @@ def linkedin_callback():
     """Handle LinkedIn OpenID Connect callback."""
     try:
         # Retrieve PKCE verifier
+        state = request.args.get('state')
+        stored_state = session.pop('oauth_state', None)
+        if stored_state != state:
+            raise AuthError({
+                "code": "invalid_state",
+                "message": "CSRF attack detected"
+            }, 400)
+
         code_verifier = session.pop('code_verifier', None)
         if not code_verifier:
             raise AuthError({
