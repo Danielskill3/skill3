@@ -5,4 +5,7 @@ supabase
 python-dotenv
 email-validator
 requests
+
+
 flask-talisman
+
