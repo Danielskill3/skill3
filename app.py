@@ -50,9 +50,15 @@ oauth.register(
     name='linkedin',
     client_id=os.getenv('LINKEDIN_CLIENT_ID'),
     client_secret=os.getenv('LINKEDIN_SECRET_KEY'),
-    server_metadata_url='https://www.linkedin.com/.well-known/openid-configuration',
+    authorize_url='https://www.linkedin.com/oauth/v2/authorization',
+    authorize_params=None,
+    access_token_url='https://www.linkedin.com/oauth/v2/accessToken',
+    access_token_params=None,
+    userinfo_endpoint='https://api.linkedin.com/v2/userinfo',
+    jwks_uri='https://www.linkedin.com/oauth/openid/jwks',
     client_kwargs={
         'scope': 'openid profile email',
+        'response_type': 'code',
         'token_endpoint_auth_method': 'client_secret_post'
     }
 )
@@ -166,16 +172,26 @@ def linkedin_login():
 def linkedin_callback():
     try:
         token = oauth.linkedin.authorize_access_token()
-        userinfo = oauth.linkedin.parse_id_token(token)
         
-        # Extract user info from ID token
+        # Get user info from userinfo endpoint
+        resp = oauth.linkedin.get('https://api.linkedin.com/v2/userinfo')
+        if resp.status_code != 200:
+            raise AuthError({
+                "code": "userinfo_error",
+                "description": "Failed to get user info from LinkedIn"
+            }, 500)
+            
+        userinfo = resp.json()
+        
+        # Extract user info
         email = userinfo.get('email')
         name = userinfo.get('name')
+        email_verified = userinfo.get('email_verified', False)
         
-        if not email:
+        if not email or not email_verified:
             raise AuthError({
-                "code": "invalid_user_info",
-                "description": "Could not get email from LinkedIn"
+                "code": "invalid_email",
+                "description": "Email not provided or not verified"
             }, 400)
 
         # Check if user exists in Supabase
@@ -186,26 +202,21 @@ def linkedin_callback():
             supabase.from_('users').insert({
                 'email': email,
                 'name': name,
-                'auth_provider': 'linkedin'
+                'auth_provider': 'linkedin',
+                'email_verified': email_verified
             }).execute()
 
         # Generate JWT token
         access_token = create_access_token(identity=email)
         
-        return jsonify({
-            'access_token': access_token,
-            'user': {
-                'email': email,
-                'name': name
-            }
-        })
+        # Redirect to frontend with token
+        frontend_url = os.getenv('FRONTEND_URL')
+        return redirect(f"{frontend_url}/auth/callback?token={access_token}")
         
     except Exception as e:
         app.logger.error(f"LinkedIn callback error: {str(e)}", exc_info=True)
-        raise AuthError({
-            "code": "linkedin_auth_error",
-            "description": str(e)
-        }, 500)
+        frontend_url = os.getenv('FRONTEND_URL')
+        return redirect(f"{frontend_url}/auth/error?error={str(e)}")
 
 @app.route('/register', methods=['POST'])
 def register():
