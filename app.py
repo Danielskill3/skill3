@@ -51,14 +51,14 @@ oauth.register(
     name='linkedin',
     client_id=os.getenv('LINKEDIN_CLIENT_ID'),
     client_secret=os.getenv('LINKEDIN_SECRET_KEY'),
-    api_base_url='https://api.linkedin.com/v2/',
     access_token_url='https://www.linkedin.com/oauth/v2/accessToken',
+    access_token_params={'grant_type': 'authorization_code'},
     authorize_url='https://www.linkedin.com/oauth/v2/authorization',
-    userinfo_url='https://api.linkedin.com/v2/userinfo',
+    authorize_params={'response_type': 'code'},
+    api_base_url='https://api.linkedin.com/v2/',
     client_kwargs={
         'scope': 'openid profile email',
-        'token_endpoint_auth_method': 'client_secret_post',
-        'response_type': 'code'
+        'token_endpoint_auth_method': 'client_secret_post'
     }
 )
 
@@ -204,13 +204,12 @@ def linkedin_callback():
         # Log callback parameters for debugging
         app.logger.info(f"Callback request args: {request.args}")
         app.logger.info(f"Using client_id: {os.getenv('LINKEDIN_CLIENT_ID')}")
-        app.logger.info(f"Using client_secret: {os.getenv('LINKEDIN_SECRET_KEY')[:5]}...")
         
         token = oauth.linkedin.authorize_access_token()
         app.logger.info("Access token obtained successfully")
         
-        resp = oauth.linkedin.get('userinfo')
-        
+        # Get user info using the userinfo endpoint
+        resp = oauth.linkedin.get('userinfo', token=token)
         if resp.status_code != 200:
             app.logger.error(f"LinkedIn userinfo error: {resp.text}")
             raise AuthError({
@@ -219,8 +218,9 @@ def linkedin_callback():
             }, 500)
             
         userinfo = resp.json()
-        app.logger.info(f"LinkedIn userinfo response: {userinfo}")
+        app.logger.info("User info retrieved successfully")
         
+        # Extract user info according to OpenID Connect spec
         email = userinfo.get('email')
         name = userinfo.get('name')
         email_verified = userinfo.get('email_verified', False)
