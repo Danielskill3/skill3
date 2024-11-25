@@ -4,3 +4,4 @@ cache/google-chrome/
 .cache/
 .config/
 node_modules
+logs/

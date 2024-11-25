@@ -56,6 +56,8 @@ oauth.register(
     authorize_url='https://www.linkedin.com/oauth/v2/authorization',
     authorize_params={'response_type': 'code'},
     api_base_url='https://api.linkedin.com/v2/',
+    userinfo_endpoint='https://api.linkedin.com/v2/userinfo',
+    jwks_uri='https://www.linkedin.com/oauth/openid/jwks',
     client_kwargs={
         'scope': 'openid profile email',
         'token_endpoint_auth_method': 'client_secret_post'
@@ -209,15 +211,15 @@ def linkedin_callback():
         app.logger.info("Access token obtained successfully")
         
         # Get user info using the userinfo endpoint
-        resp = oauth.linkedin.get('userinfo', token=token)
-        if resp.status_code != 200:
-            app.logger.error(f"LinkedIn userinfo error: {resp.text}")
+        userinfo_response = oauth.linkedin.get('userinfo')
+        if userinfo_response.status_code != 200:
+            app.logger.error(f"LinkedIn userinfo error: {userinfo_response.text}")
             raise AuthError({
                 "code": "userinfo_error",
                 "description": "Failed to get user info from LinkedIn"
             }, 500)
             
-        userinfo = resp.json()
+        userinfo = userinfo_response.json()
         app.logger.info("User info retrieved successfully")
         
         # Extract user info according to OpenID Connect spec
