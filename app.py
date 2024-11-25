@@ -171,6 +171,11 @@ def linkedin_login():
         state = secrets.token_urlsafe(16)
         session['oauth_state'] = state
         
+        # Log configuration for debugging
+        app.logger.info(f"Starting LinkedIn OAuth with:")
+        app.logger.info(f"Client ID: {os.getenv('LINKEDIN_CLIENT_ID')}")
+        app.logger.info(f"Redirect URI: {redirect_uri}")
+        
         return oauth.linkedin.authorize_redirect(
             redirect_uri=redirect_uri,
             state=state
@@ -196,7 +201,14 @@ def linkedin_callback():
                 "description": "Invalid state parameter"
             }, 400)
         
+        # Log callback parameters for debugging
+        app.logger.info(f"Callback request args: {request.args}")
+        app.logger.info(f"Using client_id: {os.getenv('LINKEDIN_CLIENT_ID')}")
+        app.logger.info(f"Using client_secret: {os.getenv('LINKEDIN_SECRET_KEY')[:5]}...")
+        
         token = oauth.linkedin.authorize_access_token()
+        app.logger.info("Access token obtained successfully")
+        
         resp = oauth.linkedin.get('userinfo')
         
         if resp.status_code != 200:
