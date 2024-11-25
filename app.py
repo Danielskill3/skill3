@@ -50,16 +50,14 @@ oauth.register(
     name='linkedin',
     client_id=os.getenv('LINKEDIN_CLIENT_ID'),
     client_secret=os.getenv('LINKEDIN_SECRET_KEY'),
-    authorize_url='https://www.linkedin.com/oauth/v2/authorization',
-    authorize_params=None,
+    api_base_url='https://api.linkedin.com/v2/',
     access_token_url='https://www.linkedin.com/oauth/v2/accessToken',
-    access_token_params=None,
-    userinfo_endpoint='https://api.linkedin.com/v2/userinfo',
-    jwks_uri='https://www.linkedin.com/oauth/openid/jwks',
+    authorize_url='https://www.linkedin.com/oauth/v2/authorization',
+    userinfo_url='https://api.linkedin.com/v2/userinfo',
     client_kwargs={
         'scope': 'openid profile email',
-        'response_type': 'code',
-        'token_endpoint_auth_method': 'client_secret_post'
+        'token_endpoint_auth_method': 'client_secret_post',
+        'response_type': 'code'
     }
 )
 
@@ -159,31 +157,42 @@ def create_user_in_supabase(email, password):
 @app.route('/api/auth/linkedin/login')
 @app.route('/api/auth/linkedin')
 def linkedin_login():
-    redirect_uri = os.getenv('LINKEDIN_REDIRECT_URI')
-    if not redirect_uri:
-        app.logger.error("LinkedIn redirect URI not configured")
+    try:
+        redirect_uri = os.getenv('LINKEDIN_REDIRECT_URI')
+        if not redirect_uri:
+            app.logger.error("LinkedIn redirect URI not configured")
+            raise AuthError({
+                "code": "configuration_error",
+                "description": "OAuth configuration error"
+            }, 500)
+        
+        return oauth.linkedin.authorize_redirect(
+            redirect_uri=redirect_uri,
+            state=secrets.token_urlsafe(16)
+        )
+    except Exception as e:
+        app.logger.error(f"LinkedIn login error: {str(e)}", exc_info=True)
         raise AuthError({
-            "code": "configuration_error",
-            "description": "OAuth configuration error"
+            "code": "linkedin_auth_error",
+            "description": str(e)
         }, 500)
-    return oauth.linkedin.authorize_redirect(redirect_uri=redirect_uri)
 
 @app.route('/api/auth/linkedin/callback')
 def linkedin_callback():
     try:
         token = oauth.linkedin.authorize_access_token()
+        resp = oauth.linkedin.get('userinfo')
         
-        # Get user info from userinfo endpoint
-        resp = oauth.linkedin.get('https://api.linkedin.com/v2/userinfo')
         if resp.status_code != 200:
+            app.logger.error(f"LinkedIn userinfo error: {resp.text}")
             raise AuthError({
                 "code": "userinfo_error",
                 "description": "Failed to get user info from LinkedIn"
             }, 500)
             
         userinfo = resp.json()
+        app.logger.info(f"LinkedIn userinfo response: {userinfo}")
         
-        # Extract user info
         email = userinfo.get('email')
         name = userinfo.get('name')
         email_verified = userinfo.get('email_verified', False)
