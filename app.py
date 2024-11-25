@@ -45,16 +45,15 @@ supabase: Client = create_client(
 )
 
 oauth = OAuth(app)
-# Initialize OAuth
+# Initialize OAuth with OpenID Connect for LinkedIn
 oauth.register(
     name='linkedin',
     client_id=os.getenv('LINKEDIN_CLIENT_ID'),
-    client_secret=os.getenv('LINKEDIN_CLIENT_SECRET'),
-    access_token_url='https://www.linkedin.com/oauth/v2/accessToken',
-    authorize_url='https://www.linkedin.com/oauth/v2/authorization',
+    client_secret=os.getenv('LINKEDIN_SECRET_KEY'),
+    server_metadata_url='https://www.linkedin.com/.well-known/openid-configuration',
     client_kwargs={
-        'scope': 'r_liteprofile r_emailaddress',
-        'response_type': 'code'
+        'scope': 'openid profile email',
+        'token_endpoint_auth_method': 'client_secret_post'
     }
 )
 
@@ -152,7 +151,7 @@ def create_user_in_supabase(email, password):
 
 
 @app.route('/api/auth/linkedin/login')
-@app.route('/api/auth/linkedin')  
+@app.route('/api/auth/linkedin')
 def linkedin_login():
     redirect_uri = os.getenv('LINKEDIN_REDIRECT_URI')
     if not redirect_uri:
@@ -167,51 +166,46 @@ def linkedin_login():
 def linkedin_callback():
     try:
         token = oauth.linkedin.authorize_access_token()
-        userinfo = oauth.linkedin.userinfo()
+        userinfo = oauth.linkedin.parse_id_token(token)
         
-        # Extract user info
+        # Extract user info from ID token
         email = userinfo.get('email')
         name = userinfo.get('name')
-        sub = userinfo.get('sub')
         
-        # Check if user exists
-        user_data = supabase.table('users').select('*').eq('email', email).execute()
+        if not email:
+            raise AuthError({
+                "code": "invalid_user_info",
+                "description": "Could not get email from LinkedIn"
+            }, 400)
+
+        # Check if user exists in Supabase
+        user_query = supabase.from_('users').select('*').eq('email', email).execute()
         
-        if not user_data.data:
-            # Create new user
-            auth_response = supabase.auth.sign_up({
-                "email": email,
-                "password": secrets.token_urlsafe(32)  # Generate random secure password
-            })
-            
-            if not auth_response.user:
-                raise AuthError({
-                    "code": "signup_error",
-                    "description": "Failed to create user account"
-                }, 400)
-                
-            user_data = {
-                "id": auth_response.user.id,
-                "email": email,
-                "name": name,
-                "linkedin_id": sub,
-                "created_at": datetime.now(timezone.utc).isoformat()
+        if not user_query.data:
+            # Create new user if they don't exist
+            supabase.from_('users').insert({
+                'email': email,
+                'name': name,
+                'auth_provider': 'linkedin'
+            }).execute()
+
+        # Generate JWT token
+        access_token = create_access_token(identity=email)
+        
+        return jsonify({
+            'access_token': access_token,
+            'user': {
+                'email': email,
+                'name': name
             }
-            
-            supabase.table('users').insert(user_data).execute()
-        else:
-            user_data = user_data.data[0]
-            
-        # Create JWT token
-        access_token = create_access_token(identity=user_data['id'])
-        
-        # Redirect to frontend with token
-        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
-        return redirect(f"{frontend_url}/auth/callback?token={access_token}")
+        })
         
     except Exception as e:
-        app.logger.error(f"LinkedIn callback error: {str(e)}")
-        return redirect(f"{os.getenv('FRONTEND_URL')}/auth/error")
+        app.logger.error(f"LinkedIn callback error: {str(e)}", exc_info=True)
+        raise AuthError({
+            "code": "linkedin_auth_error",
+            "description": str(e)
+        }, 500)
 
 @app.route('/register', methods=['POST'])
 def register():
