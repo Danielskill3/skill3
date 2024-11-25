@@ -19,7 +19,8 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', os.urandom(24).hex())
+app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
+
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', os.urandom(24).hex())
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 
@@ -166,9 +167,13 @@ def linkedin_login():
                 "description": "OAuth configuration error"
             }, 500)
         
+        # Generate and store state in session
+        state = secrets.token_urlsafe(16)
+        session['oauth_state'] = state
+        
         return oauth.linkedin.authorize_redirect(
             redirect_uri=redirect_uri,
-            state=secrets.token_urlsafe(16)
+            state=state
         )
     except Exception as e:
         app.logger.error(f"LinkedIn login error: {str(e)}", exc_info=True)
@@ -180,6 +185,17 @@ def linkedin_login():
 @app.route('/api/auth/linkedin/callback')
 def linkedin_callback():
     try:
+        # Verify state parameter
+        expected_state = session.pop('oauth_state', None)
+        received_state = request.args.get('state')
+        
+        if not expected_state or expected_state != received_state:
+            app.logger.error(f"State mismatch. Expected: {expected_state}, Received: {received_state}")
+            raise AuthError({
+                "code": "invalid_state",
+                "description": "Invalid state parameter"
+            }, 400)
+        
         token = oauth.linkedin.authorize_access_token()
         resp = oauth.linkedin.get('userinfo')
         
@@ -217,6 +233,9 @@ def linkedin_callback():
 
         # Generate JWT token
         access_token = create_access_token(identity=email)
+        
+        # Clear any remaining session data
+        session.clear()
         
         # Redirect to frontend with token
         frontend_url = os.getenv('FRONTEND_URL')
@@ -350,6 +369,36 @@ def login():
             "code": "login_error",
             "description": str(e)
         }, 500)
+
+# User profile endpoint
+@app.route('/api/user/profile')
+@jwt_required()
+def get_user_profile():
+    try:
+        current_user_email = get_jwt_identity()
+        
+        # Get user data from Supabase
+        user_query = supabase.from_('users').select('*').eq('email', current_user_email).execute()
+        
+        if not user_query.data:
+            return jsonify({
+                "error": "User not found"
+            }), 404
+            
+        user_data = user_query.data[0]
+        
+        return jsonify({
+            "email": user_data['email'],
+            "name": user_data['name'],
+            "email_verified": user_data['email_verified'],
+            "auth_provider": user_data['auth_provider']
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error fetching user profile: {str(e)}", exc_info=True)
+        return jsonify({
+            "error": "Internal server error"
+        }), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
