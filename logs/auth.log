@@ -77,3 +77,7 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 Details: None
 Path: /home/michael/Desktop/skill3/skill3/app.py:67
 
+2024-11-25 18:11:20,075 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:73
+

@@ -152,8 +152,15 @@ def create_user_in_supabase(email, password):
 
 
 @app.route('/api/auth/linkedin/login')
+@app.route('/api/auth/linkedin')  
 def linkedin_login():
     redirect_uri = os.getenv('LINKEDIN_REDIRECT_URI')
+    if not redirect_uri:
+        app.logger.error("LinkedIn redirect URI not configured")
+        raise AuthError({
+            "code": "configuration_error",
+            "description": "OAuth configuration error"
+        }, 500)
     return oauth.linkedin.authorize_redirect(redirect_uri=redirect_uri)
 
 @app.route('/api/auth/linkedin/callback')
