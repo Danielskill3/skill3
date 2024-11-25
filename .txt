@@ -1,8 +1,6 @@
-curl -X POST "http://localhost:5000/reset-password" \
+curl -X POST http://localhost:5000/login \
 -H "Content-Type: application/json" \
 -d '{
-    "email": "mosesmichael878@gmail.com"
+    "email": "13353mickey@gmail.com",
+    "password": "Password123"
 }'
-
-
-rm -rf /home/michael/.cache/google-chrome/*
