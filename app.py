@@ -34,7 +34,7 @@ jwt = JWTManager(app)
 # Initialize Supabase client
 supabase: Client = create_client(
     os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_ANON_KEY")
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 )
 
 # Configure logging
@@ -234,38 +234,68 @@ def linkedin_callback():
         userinfo = userinfo_response.json()
         app.logger.info(f"User info received: {userinfo}")
         
-        # Extract user info according to OpenID Connect spec
+        # Extract user info
         email = userinfo.get('email')
         name = userinfo.get('name')
         email_verified = userinfo.get('email_verified', False)
+        provider_id = userinfo.get('sub')  # LinkedIn's unique identifier
+        avatar_url = userinfo.get('picture')
         
-        if not email or not email_verified:
+        if not email:
             raise AuthError({
-                "code": "invalid_email",
-                "description": "Email not provided or not verified"
+                "code": "missing_email",
+                "description": "Email not provided by LinkedIn"
             }, 400)
-
-        # Check if user exists in Supabase
-        user_query = supabase.from_('users').select('*').eq('email', email).execute()
+            
+        # Try to find existing user
+        existing_user = supabase.table('users').select('*').eq('email', email).execute()
         
-        if not user_query.data:
-            # Create new user if they don't exist
-            supabase.from_('users').insert({
+        if len(existing_user.data) == 0:
+            # Create new user
+            user_data = {
                 'email': email,
                 'name': name,
+                'email_verified': email_verified,
                 'auth_provider': 'linkedin',
-                'email_verified': email_verified
-            }).execute()
-
+                'provider_id': provider_id,
+                'avatar_url': avatar_url,
+                'last_sign_in': datetime.utcnow().isoformat()
+            }
+            
+            result = supabase.table('users').insert(user_data).execute()
+            user = result.data[0]
+            app.logger.info(f"Created new user: {user['id']}")
+        else:
+            # Update existing user
+            user = existing_user.data[0]
+            update_data = {
+                'name': name,
+                'email_verified': email_verified,
+                'auth_provider': 'linkedin',
+                'provider_id': provider_id,
+                'avatar_url': avatar_url,
+                'last_sign_in': datetime.utcnow().isoformat()
+            }
+            
+            result = supabase.table('users').update(update_data).eq('id', user['id']).execute()
+            user = result.data[0]
+            app.logger.info(f"Updated existing user: {user['id']}")
+            
         # Generate JWT token
-        access_token = create_access_token(identity=email)
-        
-        # Clear any remaining session data
-        session.clear()
+        access_token = create_access_token(
+            identity=user['id'],
+            additional_claims={
+                'email': email,
+                'name': name,
+                'provider': 'linkedin'
+            }
+        )
         
         # Redirect to frontend with token
         frontend_url = os.getenv('FRONTEND_URL')
-        return redirect(f"{frontend_url}/auth/callback?token={access_token}")
+        redirect_url = f"{frontend_url}/auth/callback?token={access_token}"
+        
+        return redirect(redirect_url)
         
     except Exception as e:
         app.logger.error(f"LinkedIn callback error: {str(e)}", exc_info=True)
