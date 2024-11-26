@@ -54,7 +54,6 @@ oauth.register(
     client_secret=os.getenv('LINKEDIN_SECRET_KEY'),
     client_kwargs={
         'scope': 'openid profile email',
-        'response_type': 'code',
         'token_endpoint_auth_method': 'client_secret_post'
     }
 )
@@ -164,20 +163,15 @@ def linkedin_login():
                 "description": "OAuth configuration error"
             }, 500)
         
-        # Generate state and nonce
+        # Generate state for CSRF protection
         state = secrets.token_urlsafe(16)
-        nonce = secrets.token_urlsafe(16)
         session['oauth_state'] = state
-        session['oauth_nonce'] = nonce
         
-        app.logger.info(f"Starting LinkedIn OAuth with:")
-        app.logger.info(f"State: {state}")
-        app.logger.info(f"Nonce: {nonce}")
+        app.logger.info(f"Starting LinkedIn OAuth with state: {state}")
         
         return oauth.linkedin.authorize_redirect(
             redirect_uri=redirect_uri,
-            state=state,
-            nonce=nonce
+            state=state
         )
     except Exception as e:
         app.logger.error(f"LinkedIn login error: {str(e)}", exc_info=True)
@@ -195,7 +189,6 @@ def linkedin_callback():
         
         # Verify state parameter
         expected_state = session.pop('oauth_state', None)
-        expected_nonce = session.pop('oauth_nonce', None)
         received_state = request.args.get('state')
         
         if not expected_state or expected_state != received_state:
@@ -210,17 +203,6 @@ def linkedin_callback():
         
         token = oauth.linkedin.authorize_access_token()
         app.logger.info(f"Access token response: {token}")
-        
-        # Verify nonce in ID token claims
-        id_token = token.get('id_token')
-        if id_token:
-            claims = oauth.linkedin.parse_id_token(token, nonce=expected_nonce)
-            app.logger.info(f"ID token claims: {claims}")
-            if claims.get('nonce') != expected_nonce:
-                raise AuthError({
-                    "code": "invalid_nonce",
-                    "description": "Invalid nonce in ID token"
-                }, 400)
         
         userinfo_response = oauth.linkedin.get('userinfo')
         app.logger.info(f"Userinfo response status: {userinfo_response.status_code}")
