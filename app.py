@@ -12,54 +12,34 @@ from logging.handlers import RotatingFileHandler
 import re
 from email_validator import validate_email, EmailNotValidError
 from supabase import create_client, Client
-from authlib.integrations.flask_client import OAuth
 from werkzeug.security import generate_password_hash, check_password_hash
+import requests
+from urllib.parse import quote
 
 load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
 
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', os.urandom(24).hex())
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 
-# Setup CORS
-CORS(app, resources={r"/*": {
-    "origins": [
-        os.getenv('FRONTEND_URL', 'http://localhost:3000'),
-        "https://www.linkedin.com",
-        "https://api.linkedin.com"
-    ],
-    "supports_credentials": True,
-    "allow_headers": ["Content-Type", "Authorization"],
-    "methods": ["GET", "POST", "OPTIONS"]
-}})
+# Configure CORS
+CORS(app, supports_credentials=True)
 
 # Initialize JWT
 jwt = JWTManager(app)
 
 # Initialize Supabase client
 supabase: Client = create_client(
-    os.getenv('SUPABASE_URL'),
-    os.getenv('SUPABASE_ANON_KEY')
+    os.getenv("SUPABASE_URL"),
+    os.getenv("SUPABASE_ANON_KEY")
 )
 
-oauth = OAuth(app)
-# Initialize OAuth with OpenID Connect for LinkedIn
-oauth.register(
-    name='linkedin',
-    server_metadata_url='https://www.linkedin.com/oauth/.well-known/openid-configuration',
-    client_id=os.getenv('LINKEDIN_CLIENT_ID'),
-    client_secret=os.getenv('LINKEDIN_SECRET_KEY'),
-    client_kwargs={
-        'scope': 'openid profile email',
-        'token_endpoint_auth_method': 'client_secret_post'
-    }
-)
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
-
-# Setup logging with more detailed formatting
 if not os.path.exists('logs'):
     os.mkdir('logs')
     
@@ -156,8 +136,10 @@ def create_user_in_supabase(email, password):
 def linkedin_login():
     try:
         redirect_uri = os.getenv('LINKEDIN_REDIRECT_URI')
-        if not redirect_uri:
-            app.logger.error("LinkedIn redirect URI not configured")
+        client_id = os.getenv('LINKEDIN_CLIENT_ID')
+        
+        if not redirect_uri or not client_id:
+            app.logger.error("LinkedIn configuration missing")
             raise AuthError({
                 "code": "configuration_error",
                 "description": "OAuth configuration error"
@@ -167,12 +149,19 @@ def linkedin_login():
         state = secrets.token_urlsafe(16)
         session['oauth_state'] = state
         
-        app.logger.info(f"Starting LinkedIn OAuth with state: {state}")
-        
-        return oauth.linkedin.authorize_redirect(
-            redirect_uri=redirect_uri,
-            state=state
+        # Build LinkedIn authorization URL
+        auth_url = (
+            "https://www.linkedin.com/oauth/v2/authorization?"
+            f"response_type=code&"
+            f"client_id={client_id}&"
+            f"redirect_uri={quote(redirect_uri)}&"
+            f"state={state}&"
+            f"scope={quote('openid profile email')}"
         )
+        
+        app.logger.info(f"Redirecting to LinkedIn auth URL: {auth_url}")
+        return redirect(auth_url)
+        
     except Exception as e:
         app.logger.error(f"LinkedIn login error: {str(e)}", exc_info=True)
         raise AuthError({
@@ -185,7 +174,6 @@ def linkedin_callback():
     try:
         app.logger.info("Received callback request:")
         app.logger.info(f"Args: {request.args}")
-        app.logger.info(f"Headers: {dict(request.headers)}")
         
         # Verify state parameter
         expected_state = session.pop('oauth_state', None)
@@ -197,26 +185,54 @@ def linkedin_callback():
                 "code": "invalid_state",
                 "description": "Invalid state parameter"
             }, 400)
+            
+        # Get the authorization code
+        code = request.args.get('code')
+        if not code:
+            raise AuthError({
+                "code": "missing_code",
+                "description": "No authorization code received"
+            }, 400)
+            
+        # Exchange code for access token
+        token_url = "https://www.linkedin.com/oauth/v2/accessToken"
+        token_data = {
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": os.getenv('LINKEDIN_REDIRECT_URI'),
+            "client_id": os.getenv('LINKEDIN_CLIENT_ID'),
+            "client_secret": os.getenv('LINKEDIN_SECRET_KEY')
+        }
         
-        config = oauth.linkedin.load_server_metadata()
-        app.logger.info(f"LinkedIn OAuth Configuration: {config}")
+        app.logger.info("Requesting access token...")
+        token_response = requests.post(token_url, data=token_data)
         
-        token = oauth.linkedin.authorize_access_token()
-        app.logger.info(f"Access token response: {token}")
+        if token_response.status_code != 200:
+            app.logger.error(f"Token error: {token_response.text}")
+            raise AuthError({
+                "code": "token_error",
+                "description": "Failed to get access token"
+            }, 500)
+            
+        token_data = token_response.json()
+        access_token = token_data.get('access_token')
         
-        userinfo_response = oauth.linkedin.get('userinfo')
-        app.logger.info(f"Userinfo response status: {userinfo_response.status_code}")
-        app.logger.info(f"Userinfo response: {userinfo_response.text}")
+        # Get user info
+        userinfo_url = "https://api.linkedin.com/v2/userinfo"
+        headers = {"Authorization": f"Bearer {access_token}"}
+        
+        app.logger.info("Requesting user info...")
+        userinfo_response = requests.get(userinfo_url, headers=headers)
         
         if userinfo_response.status_code != 200:
-            app.logger.error(f"LinkedIn userinfo error: {userinfo_response.text}")
+            app.logger.error(f"Userinfo error: {userinfo_response.text}")
             raise AuthError({
                 "code": "userinfo_error",
-                "description": "Failed to get user info from LinkedIn"
+                "description": "Failed to get user info"
             }, 500)
             
         userinfo = userinfo_response.json()
-        app.logger.info("User info retrieved successfully")
+        app.logger.info(f"User info received: {userinfo}")
         
         # Extract user info according to OpenID Connect spec
         email = userinfo.get('email')
