@@ -15,6 +15,7 @@ from supabase import create_client, Client
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 from urllib.parse import quote
+import time
 
 load_dotenv()
 
@@ -236,7 +237,7 @@ def linkedin_callback():
         
         # Extract user info
         email = userinfo.get('email')
-        name = userinfo.get('name')
+        full_name = userinfo.get('name')
         email_verified = userinfo.get('email_verified', False)
         provider_id = userinfo.get('sub')  # LinkedIn's unique identifier
         avatar_url = userinfo.get('picture')
@@ -254,11 +255,13 @@ def linkedin_callback():
             # Create new user
             user_data = {
                 'email': email,
-                'name': name,
+                'full_name': full_name,
                 'email_verified': email_verified,
                 'auth_provider': 'linkedin',
                 'provider_id': provider_id,
                 'avatar_url': avatar_url,
+                'onboarding_step': 1,
+                'onboarding_completed': False,
                 'last_sign_in': datetime.utcnow().isoformat()
             }
             
@@ -269,7 +272,7 @@ def linkedin_callback():
             # Update existing user
             user = existing_user.data[0]
             update_data = {
-                'name': name,
+                'full_name': full_name,
                 'email_verified': email_verified,
                 'auth_provider': 'linkedin',
                 'provider_id': provider_id,
@@ -281,19 +284,24 @@ def linkedin_callback():
             user = result.data[0]
             app.logger.info(f"Updated existing user: {user['id']}")
             
-        # Generate JWT token
+        # Generate JWT token with additional claims
         access_token = create_access_token(
             identity=user['id'],
             additional_claims={
                 'email': email,
-                'name': name,
+                'full_name': full_name,
+                'onboarding_completed': user.get('onboarding_completed', False),
+                'onboarding_step': user.get('onboarding_step', 1),
                 'provider': 'linkedin'
             }
         )
         
         # Redirect to frontend with token
         frontend_url = os.getenv('FRONTEND_URL')
-        redirect_url = f"{frontend_url}/auth/callback?token={access_token}"
+        if not user.get('onboarding_completed', False):
+            redirect_url = f"{frontend_url}/onboarding?token={access_token}&step={user.get('onboarding_step', 1)}"
+        else:
+            redirect_url = f"{frontend_url}/auth/callback?token={access_token}"
         
         return redirect(redirect_url)
         
@@ -455,6 +463,197 @@ def get_user_profile():
         return jsonify({
             "error": "Internal server error"
         }), 500
+
+# Onboarding API endpoints
+@app.route('/api/onboarding/career-info', methods=['POST'])
+@jwt_required()
+def update_career_info():
+    try:
+        user_id = get_jwt_identity()
+        data = request.json
+        
+        # Validate university
+        university_id = data.get('university_id')
+        if university_id == 'other':
+            # Add custom university
+            custom_university = data.get('custom_university')
+            if not custom_university:
+                raise ValueError("Custom university name required")
+            
+            result = supabase.rpc('add_custom_university', {'university_name': custom_university}).execute()
+            university_id = result.data[0]
+        
+        # Update user's career information
+        update_data = {
+            'university_id': university_id,
+            'education_program_id': data.get('education_program_id'),
+            'onboarding_step': 2  # Move to next step
+        }
+        
+        result = supabase.table('users').update(update_data).eq('id', user_id).execute()
+        return jsonify({'message': 'Career information updated', 'step': 2}), 200
+        
+    except Exception as e:
+        app.logger.error(f"Career info update error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/onboarding/career-aspirations', methods=['POST'])
+@jwt_required()
+def update_career_aspirations():
+    try:
+        user_id = get_jwt_identity()
+        data = request.json
+        
+        update_data = {
+            'career_goal': data.get('career_goal'),
+            'career_path': data.get('career_path'),
+            'onboarding_step': 3  # Move to next step
+        }
+        
+        result = supabase.table('users').update(update_data).eq('id', user_id).execute()
+        return jsonify({'message': 'Career aspirations updated', 'step': 3}), 200
+        
+    except Exception as e:
+        app.logger.error(f"Career aspirations update error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/onboarding/industry-preferences', methods=['POST'])
+@jwt_required()
+def update_industry_preferences():
+    try:
+        user_id = get_jwt_identity()
+        data = request.json
+        
+        # Start a transaction for updating multiple tables
+        update_data = {
+            'dream_companies': data.get('dream_companies', []),
+            'work_mode_preference': data.get('work_mode_preference'),
+            'onboarding_step': 4  # Move to next step
+        }
+        
+        # Update user preferences
+        result = supabase.table('users').update(update_data).eq('id', user_id).execute()
+        
+        # Update industry preferences
+        if 'industry_ids' in data:
+            # First, remove existing preferences
+            supabase.table('user_industries').delete().eq('user_id', user_id).execute()
+            
+            # Then add new preferences
+            industry_data = [
+                {'user_id': user_id, 'industry_id': industry_id}
+                for industry_id in data['industry_ids']
+            ]
+            if industry_data:
+                supabase.table('user_industries').insert(industry_data).execute()
+        
+        return jsonify({'message': 'Industry preferences updated', 'step': 4}), 200
+        
+    except Exception as e:
+        app.logger.error(f"Industry preferences update error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/onboarding/personality', methods=['POST'])
+@jwt_required()
+def update_personality():
+    try:
+        user_id = get_jwt_identity()
+        data = request.json
+        
+        update_data = {
+            'personality_type': data.get('personality_type'),
+            'personality_test_url': data.get('personality_test_url'),
+            'onboarding_step': 5,
+            'onboarding_completed': True
+        }
+        
+        result = supabase.table('users').update(update_data).eq('id', user_id).execute()
+        return jsonify({'message': 'Personality information updated', 'completed': True}), 200
+        
+    except Exception as e:
+        app.logger.error(f"Personality update error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/onboarding/cv', methods=['POST'])
+@jwt_required()
+def upload_cv():
+    try:
+        user_id = get_jwt_identity()
+        
+        if 'cv' not in request.files:
+            return jsonify({'error': 'No CV file provided'}), 400
+            
+        cv_file = request.files['cv']
+        if cv_file.filename == '':
+            return jsonify({'error': 'No CV file selected'}), 400
+            
+        if not cv_file.filename.lower().endswith('.pdf'):
+            return jsonify({'error': 'Only PDF files are allowed'}), 400
+        
+        # Generate a secure filename
+        filename = f"cv_{user_id}_{int(time.time())}.pdf"
+        
+        # Upload to Supabase Storage
+        file_path = f"cv/{filename}"
+        with cv_file.stream as file:
+            result = supabase.storage.from_('documents').upload(file_path, file)
+        
+        # Get the public URL
+        cv_url = supabase.storage.from_('documents').get_public_url(file_path)
+        
+        # Update user's CV URL
+        result = supabase.table('users').update({
+            'cv_url': cv_url
+        }).eq('id', user_id).execute()
+        
+        return jsonify({'message': 'CV uploaded successfully', 'cv_url': cv_url}), 200
+        
+    except Exception as e:
+        app.logger.error(f"CV upload error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 400
+
+# Helper endpoints for onboarding
+@app.route('/api/universities', methods=['GET'])
+@jwt_required()
+def get_universities():
+    try:
+        result = supabase.table('universities').select('*').order('name').execute()
+        return jsonify(result.data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/education-programs/<university_id>', methods=['GET'])
+@jwt_required()
+def get_education_programs(university_id):
+    try:
+        result = supabase.table('education_programs').select('*').eq('university_id', university_id).execute()
+        return jsonify(result.data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/industries', methods=['GET'])
+@jwt_required()
+def get_industries():
+    try:
+        result = supabase.table('industries').select('*').order('name').execute()
+        return jsonify(result.data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/onboarding/status', methods=['GET'])
+@jwt_required()
+def get_onboarding_status():
+    try:
+        user_id = get_jwt_identity()
+        result = supabase.table('users').select('onboarding_step,onboarding_completed').eq('id', user_id).execute()
+        
+        if not result.data:
+            return jsonify({'error': 'User not found'}), 404
+            
+        return jsonify(result.data[0]), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
