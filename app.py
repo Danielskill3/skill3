@@ -49,15 +49,9 @@ oauth = OAuth(app)
 # Initialize OAuth with OpenID Connect for LinkedIn
 oauth.register(
     name='linkedin',
+    server_metadata_url='https://www.linkedin.com/oauth/.well-known/openid-configuration',
     client_id=os.getenv('LINKEDIN_CLIENT_ID'),
     client_secret=os.getenv('LINKEDIN_SECRET_KEY'),
-    access_token_url='https://www.linkedin.com/oauth/v2/accessToken',
-    access_token_params={'grant_type': 'authorization_code'},
-    authorize_url='https://www.linkedin.com/oauth/v2/authorization',
-    authorize_params={'response_type': 'code'},
-    api_base_url='https://api.linkedin.com/v2/',
-    userinfo_endpoint='https://api.linkedin.com/v2/userinfo',
-    jwks_uri='https://www.linkedin.com/oauth/openid/jwks',
     client_kwargs={
         'scope': 'openid profile email',
         'token_endpoint_auth_method': 'client_secret_post'
@@ -192,6 +186,10 @@ def linkedin_login():
 @app.route('/api/auth/linkedin/callback')
 def linkedin_callback():
     try:
+        app.logger.info("Received callback request:")
+        app.logger.info(f"Args: {request.args}")
+        app.logger.info(f"Headers: {dict(request.headers)}")
+        
         # Verify state parameter
         expected_state = session.pop('oauth_state', None)
         received_state = request.args.get('state')
@@ -203,15 +201,16 @@ def linkedin_callback():
                 "description": "Invalid state parameter"
             }, 400)
         
-        # Log callback parameters for debugging
-        app.logger.info(f"Callback request args: {request.args}")
-        app.logger.info(f"Using client_id: {os.getenv('LINKEDIN_CLIENT_ID')}")
+        config = oauth.linkedin.load_server_metadata()
+        app.logger.info(f"LinkedIn OAuth Configuration: {config}")
         
         token = oauth.linkedin.authorize_access_token()
-        app.logger.info("Access token obtained successfully")
+        app.logger.info(f"Access token response: {token}")
         
-        # Get user info using the userinfo endpoint
         userinfo_response = oauth.linkedin.get('userinfo')
+        app.logger.info(f"Userinfo response status: {userinfo_response.status_code}")
+        app.logger.info(f"Userinfo response: {userinfo_response.text}")
+        
         if userinfo_response.status_code != 200:
             app.logger.error(f"LinkedIn userinfo error: {userinfo_response.text}")
             raise AuthError({
