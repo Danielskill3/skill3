@@ -27,13 +27,18 @@ class CVProcessor:
             username = os.getenv('MONGODB_USERNAME')
             password = os.getenv('MONGODB_PASSWORD')
             
-            # Construct MongoDB URI using the Compass connection string format
+            # Construct MongoDB URI using the connection string format
             escaped_username = quote_plus(username)
             escaped_password = quote_plus(password)
-            mongo_uri = f"mongodb+srv://{escaped_username}:{escaped_password}@cluster0.ubsrj.mongodb.net/"
+            mongo_uri = f"mongodb+srv://{escaped_username}:{escaped_password}@cluster0.ubsrj.mongodb.net/skill3"
             
-            # Initialize MongoDB client with simple configuration
-            self.mongo_client = MongoClient(mongo_uri)
+            # Initialize MongoDB client with SSL/TLS settings
+            self.mongo_client = MongoClient(
+                mongo_uri,
+                ssl=True,
+                tls=True,
+                tlsAllowInvalidCertificates=True  # Note: This is for testing only
+            )
             self.db = self.mongo_client.skill3
             
             # Test connection
