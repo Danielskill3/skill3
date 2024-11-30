@@ -7,6 +7,7 @@ from urllib.parse import quote_plus
 from dotenv import load_dotenv
 import openai
 import certifi
+import ssl
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,7 +37,9 @@ class CVProcessor:
                 mongo_uri,
                 tls=True,
                 tlsCAFile=certifi.where(),
-                serverSelectionTimeoutMS=10000,
+                tlsAllowInvalidCertificates=False,
+                ssl_cert_reqs=ssl.CERT_REQUIRED,
+                serverSelectionTimeoutMS=20000,
                 connectTimeoutMS=20000,
                 socketTimeoutMS=20000
             )
