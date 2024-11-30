@@ -24,13 +24,16 @@ app = Flask(__name__)
 CORS(app, resources={
     r"/*": {
         "origins": [
-            "http://localhost:5173",  # Local development
-            "http://localhost:3000",  # Alternative local port
-            "https://skill3-frontend.onrender.com",  # Production frontend
-            "https://skill3-react.onrender.com"  # Alternative production frontend
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "https://skill3-frontend.onrender.com",
+            "https://skill3-react.onrender.com",
+            "https://skill3-login.onrender.com"
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True,
+        "expose_headers": ["Authorization"]
     }
 })
 
@@ -83,14 +86,19 @@ except Exception as e:
 def register():
     try:
         data = request.get_json()
+        logger.info("Received registration request")
         
         # Validate required fields
         required_fields = ['email', 'password', 'name']
         if not all(field in data for field in required_fields):
-            return jsonify({'error': 'Missing required fields'}), 400
+            missing_fields = [field for field in required_fields if field not in data]
+            logger.error(f"Missing required fields: {missing_fields}")
+            return jsonify({'error': f'Missing required fields: {missing_fields}'}), 400
         
         # Check if user already exists
-        if db.users.find_one({'email': data['email']}):
+        existing_user = db.users.find_one({'email': data['email']})
+        if existing_user:
+            logger.warning(f"Attempt to register existing email: {data['email']}")
             return jsonify({'error': 'Email already registered'}), 409
         
         # Create new user
@@ -102,18 +110,21 @@ def register():
         }
         
         result = db.users.insert_one(new_user)
+        logger.info(f"Successfully created new user with ID: {result.inserted_id}")
         
         # Create access token
         access_token = create_access_token(identity=str(result.inserted_id))
         
-        return jsonify({
+        response = jsonify({
             'message': 'Registration successful',
             'access_token': access_token
-        }), 201
+        })
+        response.headers['Authorization'] = f'Bearer {access_token}'
+        return response, 201
         
     except Exception as e:
         logger.error(f"Registration error: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 @app.route('/v1/auth/login', methods=['POST'])
 def login():
