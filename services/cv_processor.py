@@ -85,16 +85,14 @@ class CVProcessor:
             # Construct MongoDB URI with properly escaped credentials
             escaped_username = quote_plus(username)
             escaped_password = quote_plus(password)
-            mongo_uri = f"mongodb+srv://{escaped_username}:{escaped_password}@cluster0.ubsrj.mongodb.net/skill3?retryWrites=true&w=majority&tls=true"
+            mongo_uri = f"mongodb+srv://{escaped_username}:{escaped_password}@cluster0.ubsrj.mongodb.net/skill3?retryWrites=true&w=majority"
             
-            # Initialize MongoDB client with SSL configuration
+            # Initialize MongoDB client with updated SSL configuration
             self.mongo_client = MongoClient(
                 mongo_uri,
-                ssl=True,
-                ssl_cert_reqs='CERT_NONE',  # For development only, use proper cert validation in production
-                serverSelectionTimeoutMS=5000,
-                connectTimeoutMS=10000,
-                socketTimeoutMS=10000
+                tls=True,
+                tlsAllowInvalidCertificates=True,  # Only for development
+                serverSelectionTimeoutMS=5000
             )
             self.db = self.mongo_client.skill3
             
