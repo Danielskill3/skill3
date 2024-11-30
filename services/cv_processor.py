@@ -85,7 +85,7 @@ class CVProcessor:
             # Construct MongoDB URI with properly escaped credentials
             escaped_username = quote_plus(username)
             escaped_password = quote_plus(password)
-            mongo_uri = f"mongodb+srv://{escaped_username}:{escaped_password}@cluster0.ubsrj.mongodb.net/skill3?retryWrites=true&w=majority"
+            mongo_uri = f"mongodb+srv://{escaped_username}:{escaped_password}@cluster0.ubsrj.mongodb.net/"
             
             # Initialize MongoDB client with updated SSL configuration
             self.mongo_client = MongoClient(

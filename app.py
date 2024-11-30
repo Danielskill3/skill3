@@ -61,7 +61,7 @@ jwt = JWTManager(app)
 try:
     mongodb_username = urllib.parse.quote_plus(os.getenv('MONGODB_USERNAME'))
     mongodb_password = urllib.parse.quote_plus(os.getenv('MONGODB_PASSWORD'))
-    mongodb_uri = f"mongodb+srv://{mongodb_username}:{mongodb_password}@cluster0.ubsrj.mongodb.net/skill3?retryWrites=true&w=majority"
+    mongodb_uri = f"mongodb+srv://{mongodb_username}:{mongodb_password}@cluster0.ubsrj.mongodb.net/"
     
     client = MongoClient(
         mongodb_uri,
