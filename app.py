@@ -61,8 +61,16 @@ jwt = JWTManager(app)
 try:
     mongodb_username = urllib.parse.quote_plus(os.getenv('MONGODB_USERNAME'))
     mongodb_password = urllib.parse.quote_plus(os.getenv('MONGODB_PASSWORD'))
-    mongodb_uri = f"mongodb+srv://{mongodb_username}:{mongodb_password}@cluster0.mongodb.net/?retryWrites=true&w=majority"
-    client = MongoClient(mongodb_uri)
+    mongodb_uri = f"mongodb+srv://{mongodb_username}:{mongodb_password}@cluster0.ubsrj.mongodb.net/skill3?retryWrites=true&w=majority&tls=true"
+    
+    client = MongoClient(
+        mongodb_uri,
+        ssl=True,
+        ssl_cert_reqs='CERT_NONE',  # For development only, use proper cert validation in production
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=10000,
+        socketTimeoutMS=10000
+    )
     db = client.skill3_db
     logger.info("Successfully connected to MongoDB")
 except Exception as e:
