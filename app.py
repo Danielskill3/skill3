@@ -88,7 +88,6 @@ try:
     db.command('ping')
     logger.info("Successfully connected to MongoDB")
     
-    # Initialize universities
     def initialize_universities():
         """Initialize the universities collection with Danish universities"""
         danish_universities = [
@@ -126,17 +125,46 @@ except Exception as e:
 @app.route('/v1/universities', methods=['GET'])
 def get_universities():
     try:
-        # Fetch universities from MongoDB with all fields except _id
+        # Add debug logging
+        logger.info("Fetching universities from database")
         universities = list(db.universities.find({}, {'_id': 0}))
+        logger.info(f"Found {len(universities)} universities")
+        
+        if not universities:
+            # If no universities found, try to initialize again
+            initialize_universities()
+            universities = list(db.universities.find({}, {'_id': 0}))
+            logger.info(f"After initialization, found {len(universities)} universities")
+        
         return jsonify(universities), 200
     except Exception as e:
         logger.error(f"Error fetching universities: {str(e)}")
-        return jsonify({'error': 'Failed to fetch universities'}), 500
+        return jsonify({'error': f'Failed to fetch universities: {str(e)}'}), 500
 
-# Add test endpoint
+# Add API test endpoints
 @app.route('/v1/test', methods=['GET'])
 def test_endpoint():
     return jsonify({'message': 'API is working'}), 200
+
+@app.route('/v1/test/universities', methods=['GET'])
+def test_universities():
+    try:
+        # Count universities
+        count = db.universities.count_documents({})
+        # Get a sample university
+        sample = db.universities.find_one({}, {'_id': 0})
+        return jsonify({
+            'status': 'success',
+            'university_count': count,
+            'sample_university': sample,
+            'mongodb_connected': True
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'mongodb_connected': False
+        }), 500
 
 # Add health check endpoint
 @app.route('/health', methods=['GET'])
@@ -217,37 +245,50 @@ def login():
         logger.error(f"Login error: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-@app.route('/v1/profile/cv/upload', methods=['POST'])
-@jwt_required()
+@app.route('/v1/cv/upload', methods=['POST'])
 def upload_cv():
     try:
-        user_id = get_jwt_identity()
-        
-        # Check if file is present
-        if 'file' not in request.files:
+        # Get the token from the request header
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        if not token:
+            return jsonify({'error': 'No token provided'}), 401
+
+        # Verify the token and get the user ID
+        try:
+            user_id = get_jwt_identity()
+        except Exception as e:
+            return jsonify({'error': 'Invalid token'}), 401
+
+        # Check if file is present in request
+        if 'cv' not in request.files:
             return jsonify({'error': 'No file provided'}), 400
-            
-        file = request.files['file']
+
+        file = request.files['cv']
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
-            
-        # Save file
-        filename = f"{user_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        
-        # Process CV
-        try:
-            cv_processor.process_cv(filepath, user_id)
-            logger.info(f"CV processing started for user: {user_id}")
-            return jsonify({'message': 'CV upload successful and processing started'}), 202
-        except Exception as e:
-            logger.error(f"Error processing CV: {str(e)}")
-            return jsonify({'error': 'Error processing CV'}), 500
-            
+
+        # Get additional information
+        university = request.form.get('university', 'Not Specified')
+        program = request.form.get('program', 'Not Specified')
+        graduation_year = request.form.get('graduationYear', 'Not Specified')
+
+        # Process the CV
+        cv_processor.process_cv(
+            file,
+            user_id=user_id,
+            university=university,
+            program=program,
+            graduation_year=graduation_year
+        )
+
+        return jsonify({
+            'message': 'CV uploaded and processed successfully',
+            'user_id': user_id
+        }), 200
+
     except Exception as e:
         logger.error(f"Error in CV upload: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': f'Failed to upload CV: {str(e)}'}), 500
 
 @app.route('/v1/profile/cv/processing-status', methods=['GET'])
 @jwt_required()
