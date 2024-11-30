@@ -37,8 +37,6 @@ class CVProcessor:
                 mongo_uri,
                 tls=True,
                 tlsCAFile=certifi.where(),
-                tlsAllowInvalidCertificates=False,
-                ssl_cert_reqs=ssl.CERT_REQUIRED,
                 serverSelectionTimeoutMS=20000,
                 connectTimeoutMS=20000,
                 socketTimeoutMS=20000
