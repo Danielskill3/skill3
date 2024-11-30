@@ -2,7 +2,7 @@ Flask
 Werkzeug
 flask-cors
 flask-jwt-extended
-pymongo[srv]
+pymongo
 python-dotenv
 openai
 PyPDF2
