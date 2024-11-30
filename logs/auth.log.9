@@ -1,5 +1,5 @@
-2024-11-25 17:40:48,816 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e217a0835c0>)
+2024-11-25 20:26:21,472 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ec5ac0>)
 Path: /home/michael/Desktop/skill3/skill3/app.py:85
 Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
@@ -13,93 +13,171 @@ Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
     raise NotFound() from None
 werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:48,834 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ea0bc0>)
-Path: /home/michael/Desktop/skill3/skill3/app.py:85
+2024-11-26 16:46:50,170 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:54
+
+2024-11-26 16:48:39,677 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:54
+
+2024-11-26 16:51:32,706 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:54
+
+2024-11-26 16:52:30,982 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:54
+
+2024-11-26 16:58:55,100 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:54
+
+2024-11-26 16:59:36,543 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:54
+
+2024-11-26 17:01:32,066 INFO: Starting registration process
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:317
+
+2024-11-26 17:01:32,067 INFO: Registration request data: {'email': 'mosesmichael878@gmail.com', 'password': '@13353Mike', 'name': 'Michael Moses '}
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:327
+
+2024-11-26 17:01:32,687 ERROR: Supabase user creation error: Invalid API key
+Details: (<class 'gotrue.errors.AuthApiError'>, AuthApiError('Invalid API key'), <traceback object at 0x7760a72bc180>)
+Path: /home/michael/Desktop/skill3/skill3/app.py:128
 Traceback (most recent call last):
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 891, in dispatch_request
-    self.raise_routing_exception(req)
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 500, in raise_routing_exception
-    raise request.routing_exception  # type: ignore[misc]
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/ctx.py", line 362, in match_request
-    result = self.url_adapter.match(return_rule=True)  # type: ignore
-  File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
-    raise NotFound() from None
-werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:48,896 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ea3ec0>)
-Path: /home/michael/Desktop/skill3/skill3/app.py:85
+  File "/home/michael/.local/lib/python3.10/site-packages/gotrue/_sync/gotrue_base_api.py", line 120, in _request
+    response.raise_for_status()
+  File "/home/michael/.local/lib/python3.10/site-packages/httpx/_models.py", line 763, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://dassrgmbiqkhvblfjqga.supabase.co/auth/v1/signup'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+During handling of the above exception, another exception occurred:
+
 Traceback (most recent call last):
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 891, in dispatch_request
-    self.raise_routing_exception(req)
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 500, in raise_routing_exception
-    raise request.routing_exception  # type: ignore[misc]
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/ctx.py", line 362, in match_request
-    result = self.url_adapter.match(return_rule=True)  # type: ignore
-  File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
-    raise NotFound() from None
-werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:48,945 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179eaa2c0>)
-Path: /home/michael/Desktop/skill3/skill3/app.py:85
+  File "/home/michael/Desktop/skill3/skill3/app.py", line 106, in create_user_in_supabase
+    auth_response = supabase.auth.sign_up({
+  File "/home/michael/.local/lib/python3.10/site-packages/gotrue/_sync/gotrue_client.py", line 205, in sign_up
+    response = self._request(
+  File "/home/michael/.local/lib/python3.10/site-packages/gotrue/_sync/gotrue_base_api.py", line 125, in _request
+    raise handle_exception(e)
+gotrue.errors.AuthApiError: Invalid API key
+2024-11-26 17:01:32,694 ERROR: Auth error: {'code': 'supabase_error', 'description': 'Failed to create user in Supabase: Invalid API key'}
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:65
+
+2024-11-26 17:03:41,568 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:54
+
+2024-11-26 17:03:52,644 INFO: Starting registration process
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:321
+
+2024-11-26 17:03:52,644 INFO: Registration request data: {'email': 'mosesmichael878@gmail.com', 'password': '@13353Mike', 'name': 'Michael Moses '}
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:331
+
+2024-11-26 17:03:53,318 ERROR: Supabase user creation error: Invalid API key
+Details: (<class 'gotrue.errors.AuthApiError'>, AuthApiError('Invalid API key'), <traceback object at 0x7526816ba640>)
+Path: /home/michael/Desktop/skill3/skill3/app.py:132
 Traceback (most recent call last):
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 891, in dispatch_request
-    self.raise_routing_exception(req)
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 500, in raise_routing_exception
-    raise request.routing_exception  # type: ignore[misc]
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/ctx.py", line 362, in match_request
-    result = self.url_adapter.match(return_rule=True)  # type: ignore
-  File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
-    raise NotFound() from None
-werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:48,977 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ea8040>)
-Path: /home/michael/Desktop/skill3/skill3/app.py:85
+  File "/home/michael/.local/lib/python3.10/site-packages/gotrue/_sync/gotrue_base_api.py", line 120, in _request
+    response.raise_for_status()
+  File "/home/michael/.local/lib/python3.10/site-packages/httpx/_models.py", line 763, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://dassrgmbiqkhvblfjqga.supabase.co/auth/v1/admin/users'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+During handling of the above exception, another exception occurred:
+
 Traceback (most recent call last):
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 891, in dispatch_request
-    self.raise_routing_exception(req)
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 500, in raise_routing_exception
-    raise request.routing_exception  # type: ignore[misc]
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/ctx.py", line 362, in match_request
-    result = self.url_adapter.match(return_rule=True)  # type: ignore
-  File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
-    raise NotFound() from None
-werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:49,050 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179eb86c0>)
-Path: /home/michael/Desktop/skill3/skill3/app.py:85
+  File "/home/michael/Desktop/skill3/skill3/app.py", line 113, in create_user_in_supabase
+    auth_response = supabase.auth.admin.create_user(user_data)
+  File "/home/michael/.local/lib/python3.10/site-packages/gotrue/_sync/gotrue_admin_api.py", line 102, in create_user
+    return self._request(
+  File "/home/michael/.local/lib/python3.10/site-packages/gotrue/_sync/gotrue_base_api.py", line 125, in _request
+    raise handle_exception(e)
+gotrue.errors.AuthApiError: Invalid API key
+2024-11-26 17:03:53,322 ERROR: Auth error: {'code': 'supabase_error', 'description': 'Failed to create user in Supabase: Invalid API key'}
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:65
+
+2024-11-26 17:07:48,491 INFO: Starting registration process
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:321
+
+2024-11-26 17:07:48,491 INFO: Registration request data: {'email': 'mosesmichael878@gmail.com', 'password': '@13353Mike', 'name': 'Michael Moses '}
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:331
+
+2024-11-26 17:07:49,022 ERROR: Supabase user creation error: Invalid API key
+Details: (<class 'gotrue.errors.AuthApiError'>, AuthApiError('Invalid API key'), <traceback object at 0x7526815123c0>)
+Path: /home/michael/Desktop/skill3/skill3/app.py:132
 Traceback (most recent call last):
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 891, in dispatch_request
-    self.raise_routing_exception(req)
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 500, in raise_routing_exception
-    raise request.routing_exception  # type: ignore[misc]
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/ctx.py", line 362, in match_request
-    result = self.url_adapter.match(return_rule=True)  # type: ignore
-  File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
-    raise NotFound() from None
-werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:49,110 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ea3440>)
-Path: /home/michael/Desktop/skill3/skill3/app.py:85
+  File "/home/michael/.local/lib/python3.10/site-packages/gotrue/_sync/gotrue_base_api.py", line 120, in _request
+    response.raise_for_status()
+  File "/home/michael/.local/lib/python3.10/site-packages/httpx/_models.py", line 763, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://dassrgmbiqkhvblfjqga.supabase.co/auth/v1/admin/users'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+During handling of the above exception, another exception occurred:
+
 Traceback (most recent call last):
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 891, in dispatch_request
-    self.raise_routing_exception(req)
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 500, in raise_routing_exception
-    raise request.routing_exception  # type: ignore[misc]
-  File "/home/michael/.local/lib/python3.10/site-packages/flask/ctx.py", line 362, in match_request
-    result = self.url_adapter.match(return_rule=True)  # type: ignore
-  File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
-    raise NotFound() from None
-werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+  File "/home/michael/Desktop/skill3/skill3/app.py", line 113, in create_user_in_supabase
+    app.logger.info(f"Supabase auth response: {auth_response}")
+  File "/home/michael/.local/lib/python3.10/site-packages/gotrue/_sync/gotrue_admin_api.py", line 102, in create_user
+    return self._request(
+  File "/home/michael/.local/lib/python3.10/site-packages/gotrue/_sync/gotrue_base_api.py", line 125, in _request
+    raise handle_exception(e)
+gotrue.errors.AuthApiError: Invalid API key
+2024-11-26 17:07:49,023 ERROR: Auth error: {'code': 'supabase_error', 'description': 'Failed to create user in Supabase: Invalid API key'}
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:65
+
+2024-11-26 17:09:57,886 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:55
+
+2024-11-26 17:12:41,092 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:55
+
+2024-11-26 17:13:34,627 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:55
+
+2024-11-26 17:13:39,215 INFO: Starting registration process
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:330
+
+2024-11-26 17:13:39,216 INFO: Registration request data: {'email': 'mosesmichael878@gmail.com', 'password': '@13353Mike', 'name': 'Michael Moses '}
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:340
+
+2024-11-26 17:13:39,923 ERROR: Supabase user creation error: Invalid API key
+Details: (<class 'gotrue.errors.AuthApiError'>, AuthApiError('Invalid API key'), <traceback object at 0x7a16b5e0fc00>)
+Path: /home/michael/Desktop/skill3/skill3/app.py:141
+Traceback (most recent call last):
+  File "/home/michael/Desktop/skill3/.venv/lib/python3.10/site-packages/gotrue/_sync/gotrue_base_api.py", line 120, in _request
+    response.raise_for_status()
+  File "/home/michael/Desktop/skill3/.venv/lib/python3.10/site-packages/httpx/_models.py", line 763, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://dassrgmbiqkhvblfjqga.supabase.co/auth/v1/signup'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/michael/Desktop/skill3/skill3/app.py", line 108, in create_user_in_supabase
+    auth_response = supabase.auth.sign_up({
+  File "/home/michael/Desktop/skill3/.venv/lib/python3.10/site-packages/gotrue/_sync/gotrue_client.py", line 205, in sign_up
+    response = self._request(
+  File "/home/michael/Desktop/skill3/.venv/lib/python3.10/site-packages/gotrue/_sync/gotrue_base_api.py", line 125, in _request
+    raise handle_exception(e)
+gotrue.errors.AuthApiError: Invalid API key

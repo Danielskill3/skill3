@@ -1,5 +1,5 @@
-2024-11-25 17:40:48,440 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ea0080>)
+2024-11-25 17:46:24,357 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ea8f40>)
 Path: /home/michael/Desktop/skill3/skill3/app.py:85
 Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
@@ -13,8 +13,8 @@ Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
     raise NotFound() from None
 werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:48,503 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e217a083340>)
+2024-11-25 17:46:24,425 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179eaa540>)
 Path: /home/michael/Desktop/skill3/skill3/app.py:85
 Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
@@ -28,8 +28,8 @@ Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
     raise NotFound() from None
 werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:48,536 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e217a082540>)
+2024-11-25 17:46:24,473 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ebb5c0>)
 Path: /home/michael/Desktop/skill3/skill3/app.py:85
 Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
@@ -43,8 +43,8 @@ Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
     raise NotFound() from None
 werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:48,634 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ea8fc0>)
+2024-11-25 17:46:24,503 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e217a081d80>)
 Path: /home/michael/Desktop/skill3/skill3/app.py:85
 Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
@@ -58,8 +58,8 @@ Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
     raise NotFound() from None
 werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:48,673 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179eaa940>)
+2024-11-25 17:46:26,534 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ec5740>)
 Path: /home/michael/Desktop/skill3/skill3/app.py:85
 Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
@@ -73,8 +73,16 @@ Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
     raise NotFound() from None
 werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:48,711 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e217a008fc0>)
+2024-11-25 17:57:04,862 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:67
+
+2024-11-25 18:11:20,075 INFO: Auth service startup
+Details: None
+Path: /home/michael/Desktop/skill3/skill3/app.py:73
+
+2024-11-25 18:23:50,350 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ec7b40>)
 Path: /home/michael/Desktop/skill3/skill3/app.py:85
 Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
@@ -88,8 +96,8 @@ Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/werkzeug/routing/map.py", line 629, in match
     raise NotFound() from None
 werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-2024-11-25 17:40:48,775 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
-Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e217a0825c0>)
+2024-11-25 20:26:09,551 ERROR: Unexpected error: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+Details: (<class 'werkzeug.exceptions.NotFound'>, <NotFound '404: Not Found'>, <traceback object at 0x7e2179ec6fc0>)
 Path: /home/michael/Desktop/skill3/skill3/app.py:85
 Traceback (most recent call last):
   File "/home/michael/.local/lib/python3.10/site-packages/flask/app.py", line 917, in full_dispatch_request
