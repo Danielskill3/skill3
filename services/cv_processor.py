@@ -98,18 +98,27 @@ class CVProcessor:
     def process_cv(self, file_path, user_id):
         """Process CV file and store results"""
         try:
+            logger.info(f"Starting CV processing for user {user_id}")
+            
             # Update processing status
-            self.db.cv_processing_status.insert_one({
-                'user_id': user_id,
-                'status': 'processing',
-                'started_at': datetime.utcnow(),
-                'updated_at': datetime.utcnow()
-            })
+            self.db.cv_processing_status.update_one(
+                {'user_id': user_id},
+                {
+                    '$set': {
+                        'status': 'processing',
+                        'started_at': datetime.utcnow(),
+                        'updated_at': datetime.utcnow()
+                    }
+                },
+                upsert=True
+            )
 
             # Extract text from PDF
+            logger.info(f"Extracting text from PDF: {file_path}")
             cv_text = self.extract_text_from_pdf(file_path)
             
             # Analyze CV with OpenAI
+            logger.info("Analyzing CV with OpenAI")
             analysis = self.analyze_cv_with_openai(cv_text)
             
             # Store CV data
@@ -137,6 +146,7 @@ class CVProcessor:
             logger.info(f"CV processing completed for user: {user_id}")
             
         except Exception as e:
+            logger.error(f"Error processing CV for user {user_id}: {str(e)}")
             # Update processing status to failed
             self.db.cv_processing_status.update_one(
                 {'user_id': user_id},
@@ -146,9 +156,9 @@ class CVProcessor:
                         'error': str(e),
                         'updated_at': datetime.utcnow()
                     }
-                }
+                },
+                upsert=True
             )
-            logger.error(f"Error processing CV: {str(e)}")
             raise
 
     def find_similar_profiles(self, user_id, limit=5):

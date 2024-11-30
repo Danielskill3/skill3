@@ -262,18 +262,11 @@ def login():
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/v1/cv/upload', methods=['POST'])
+@jwt_required()
 def upload_cv():
     try:
-        # Get the token from the request header
-        token = request.headers.get('Authorization', '').replace('Bearer ', '')
-        if not token:
-            return jsonify({'error': 'No token provided'}), 401
-
-        # Verify the token and get the user ID
-        try:
-            user_id = get_jwt_identity()
-        except Exception as e:
-            return jsonify({'error': 'Invalid token'}), 401
+        user_id = get_jwt_identity()
+        logger.info(f"Processing CV upload for user: {user_id}")
 
         # Check if file is present in request
         if 'cv' not in request.files:
@@ -283,24 +276,47 @@ def upload_cv():
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
 
-        # Get additional information
-        university = request.form.get('university', 'Not Specified')
-        program = request.form.get('program', 'Not Specified')
-        graduation_year = request.form.get('graduationYear', 'Not Specified')
+        # Verify file type
+        if not file.filename.lower().endswith('.pdf'):
+            return jsonify({'error': 'Only PDF files are supported'}), 400
 
-        # Process the CV
-        cv_processor.process_cv(
-            file,
-            user_id=user_id,
-            university=university,
-            program=program,
-            graduation_year=graduation_year
-        )
+        # Create user upload directory if it doesn't exist
+        user_upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(user_id))
+        os.makedirs(user_upload_dir, exist_ok=True)
 
-        return jsonify({
-            'message': 'CV uploaded and processed successfully',
-            'user_id': user_id
-        }), 200
+        # Save the file with a secure filename
+        filename = f"cv_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
+        file_path = os.path.join(user_upload_dir, filename)
+        file.save(file_path)
+        
+        logger.info(f"CV saved to: {file_path}")
+
+        # Store additional information in MongoDB
+        cv_metadata = {
+            'user_id': user_id,
+            'university': request.form.get('university', 'Not Specified'),
+            'program': request.form.get('program', 'Not Specified'),
+            'graduation_year': request.form.get('graduationYear', 'Not Specified'),
+            'original_filename': file.filename,
+            'stored_filename': filename,
+            'file_path': file_path,
+            'uploaded_at': datetime.utcnow()
+        }
+        db.cv_metadata.insert_one(cv_metadata)
+
+        # Process the CV asynchronously
+        try:
+            cv_processor.process_cv(file_path, user_id)
+            return jsonify({
+                'message': 'CV uploaded and processing started',
+                'user_id': user_id
+            }), 200
+        except Exception as e:
+            logger.error(f"Error processing CV: {str(e)}")
+            return jsonify({
+                'message': 'CV uploaded but processing failed',
+                'error': str(e)
+            }), 500
 
     except Exception as e:
         logger.error(f"Error in CV upload: {str(e)}")
