@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
 import openai
+import certifi
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,14 +29,16 @@ class CVProcessor:
             # Construct MongoDB URI with properly escaped credentials
             escaped_username = quote_plus(username)
             escaped_password = quote_plus(password)
-            mongo_uri = f"mongodb+srv://{escaped_username}:{escaped_password}@cluster0.ubsrj.mongodb.net/"
+            mongo_uri = f"mongodb+srv://{escaped_username}:{escaped_password}@cluster0.ubsrj.mongodb.net/?retryWrites=true&w=majority"
             
             # Initialize MongoDB client with updated SSL configuration
             self.mongo_client = MongoClient(
                 mongo_uri,
                 tls=True,
-                tlsAllowInvalidCertificates=True,
-                serverSelectionTimeoutMS=5000
+                tlsCAFile=certifi.where(),
+                serverSelectionTimeoutMS=10000,
+                connectTimeoutMS=20000,
+                socketTimeoutMS=20000
             )
             self.db = self.mongo_client.skill3
             

@@ -10,6 +10,7 @@ import logging
 import urllib.parse
 from dotenv import load_dotenv
 from services.cv_processor import CVProcessor
+import certifi
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -56,13 +57,15 @@ except Exception as e:
 try:
     mongodb_username = urllib.parse.quote_plus(os.getenv('MONGODB_USERNAME'))
     mongodb_password = urllib.parse.quote_plus(os.getenv('MONGODB_PASSWORD'))
-    mongodb_uri = f"mongodb+srv://{mongodb_username}:{mongodb_password}@cluster0.ubsrj.mongodb.net/"
+    mongodb_uri = f"mongodb+srv://{mongodb_username}:{mongodb_password}@cluster0.ubsrj.mongodb.net/?retryWrites=true&w=majority"
     
     client = MongoClient(
         mongodb_uri,
         tls=True,
-        tlsAllowInvalidCertificates=True,
-        serverSelectionTimeoutMS=5000
+        tlsCAFile=certifi.where(),
+        serverSelectionTimeoutMS=10000,
+        connectTimeoutMS=20000,
+        socketTimeoutMS=20000
     )
     db = client.skill3_db
     
