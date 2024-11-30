@@ -21,21 +21,31 @@ load_dotenv()
 
 # Initialize Flask app and configure CORS
 app = Flask(__name__)
-CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "http://localhost:5173",
-            "http://localhost:3000",
-            "https://skill3-frontend.onrender.com",
-            "https://skill3-react.onrender.com",
-            "https://skill3-login.onrender.com"
-        ],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True,
-        "expose_headers": ["Authorization"]
-    }
-})
+
+# Configure CORS with all necessary settings
+CORS(app, 
+     resources={
+         r"/*": {
+             "origins": [
+                 "http://localhost:5173",
+                 "http://localhost:3000",
+                 "https://skill3-frontend.onrender.com",
+                 "https://skill3-react.onrender.com",
+                 "https://skill3-login.onrender.com"
+             ],
+             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+             "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+             "expose_headers": ["Authorization", "Content-Type"],
+             "supports_credentials": True,
+             "max_age": 600
+         }
+     })
+
+# Add OPTIONS handler for all routes
+@app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
+@app.route('/<path:path>', methods=['OPTIONS'])
+def handle_options(path):
+    return '', 204
 
 # Configure JWT
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'your-secret-key')
@@ -77,9 +87,64 @@ try:
     # Test connection
     db.command('ping')
     logger.info("Successfully connected to MongoDB")
+    
+    # Initialize universities
+    def initialize_universities():
+        """Initialize the universities collection with Danish universities"""
+        danish_universities = [
+            {"name": "University of Copenhagen", "country": "Denmark", "city": "Copenhagen"},
+            {"name": "Technical University of Denmark (DTU)", "country": "Denmark", "city": "Lyngby"},
+            {"name": "Aarhus University", "country": "Denmark", "city": "Aarhus"},
+            {"name": "Aalborg University", "country": "Denmark", "city": "Aalborg"},
+            {"name": "University of Southern Denmark", "country": "Denmark", "city": "Odense"},
+            {"name": "Copenhagen Business School", "country": "Denmark", "city": "Copenhagen"},
+            {"name": "IT University of Copenhagen", "country": "Denmark", "city": "Copenhagen"},
+            {"name": "Roskilde University", "country": "Denmark", "city": "Roskilde"},
+            {"name": "VIA University College", "country": "Denmark", "city": "Aarhus"},
+            {"name": "Copenhagen School of Design and Technology", "country": "Denmark", "city": "Copenhagen"}
+        ]
+
+        try:
+            # Check if universities already exist
+            existing_count = db.universities.count_documents({})
+            if existing_count == 0:
+                # Insert universities if collection is empty
+                db.universities.insert_many(danish_universities)
+                logger.info(f"Successfully initialized {len(danish_universities)} Danish universities")
+            else:
+                logger.info(f"Universities collection already contains {existing_count} documents")
+        except Exception as e:
+            logger.error(f"Error initializing universities: {str(e)}")
+
+    initialize_universities()
+    
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {str(e)}")
     raise
+
+# Add universities endpoint
+@app.route('/v1/universities', methods=['GET'])
+def get_universities():
+    try:
+        # Fetch universities from MongoDB with all fields except _id
+        universities = list(db.universities.find({}, {'_id': 0}))
+        return jsonify(universities), 200
+    except Exception as e:
+        logger.error(f"Error fetching universities: {str(e)}")
+        return jsonify({'error': 'Failed to fetch universities'}), 500
+
+# Add test endpoint
+@app.route('/v1/test', methods=['GET'])
+def test_endpoint():
+    return jsonify({'message': 'API is working'}), 200
+
+# Add health check endpoint
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'healthy',
+        'mongodb': 'connected' if cv_processor else 'disconnected'
+    }), 200
 
 # Routes
 @app.route('/v1/auth/register', methods=['POST'])
