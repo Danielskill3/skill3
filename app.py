@@ -192,7 +192,7 @@ def register():
         existing_user = db.users.find_one({'email': data['email']})
         if existing_user:
             logger.warning(f"Attempt to register existing email: {data['email']}")
-            return jsonify({'error': 'Email already registered'}), 409
+            return jsonify({'error': 'Email already registered', 'code': 'EMAIL_EXISTS'}), 409
         
         # Create new user
         new_user = {
@@ -210,14 +210,18 @@ def register():
         
         response = jsonify({
             'message': 'Registration successful',
-            'access_token': access_token
+            'access_token': access_token,
+            'user': {
+                'id': str(result.inserted_id),
+                'name': data['name'],
+                'email': data['email']
+            }
         })
-        response.headers['Authorization'] = f'Bearer {access_token}'
         return response, 201
         
     except Exception as e:
         logger.error(f"Registration error: {str(e)}")
-        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+        return jsonify({'error': str(e), 'code': 'SERVER_ERROR'}), 500
 
 @app.route('/v1/auth/login', methods=['POST'])
 def login():
