@@ -32,13 +32,29 @@ class CVProcessor:
             escaped_password = quote_plus(password)
             mongo_uri = f"mongodb+srv://{escaped_username}:{escaped_password}@cluster0.ubsrj.mongodb.net/skill3"
             
-            # Initialize MongoDB client with SSL/TLS settings
+            logger.info("Attempting to connect to MongoDB...")
+            
+            # Initialize MongoDB client with SSL/TLS settings and longer timeouts
             self.mongo_client = MongoClient(
                 mongo_uri,
                 ssl=True,
                 tls=True,
-                tlsAllowInvalidCertificates=True  # Note: This is for testing only
+                tlsAllowInvalidCertificates=True,
+                serverSelectionTimeoutMS=30000,
+                connectTimeoutMS=30000,
+                socketTimeoutMS=30000,
+                maxIdleTimeMS=30000
             )
+            
+            # Test the connection explicitly
+            try:
+                # The ismaster command is cheap and does not require auth.
+                self.mongo_client.admin.command('ismaster')
+                logger.info("Successfully connected to MongoDB")
+            except Exception as e:
+                logger.error(f"MongoDB connection test failed: {str(e)}")
+                raise
+                
             self.db = self.mongo_client.skill3
             
             # Test connection
