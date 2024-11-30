@@ -11,6 +11,7 @@ import urllib.parse
 from dotenv import load_dotenv
 from services.cv_processor import CVProcessor
 import certifi
+import re
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -188,11 +189,23 @@ def register():
             logger.error(f"Missing required fields: {missing_fields}")
             return jsonify({'error': f'Missing required fields: {missing_fields}'}), 400
         
+        # Validate email format
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", data['email']):
+            logger.error(f"Invalid email format: {data['email']}")
+            return jsonify({'error': 'Invalid email format'}), 400
+            
         # Check if user already exists
         existing_user = db.users.find_one({'email': data['email']})
         if existing_user:
             logger.warning(f"Attempt to register existing email: {data['email']}")
-            return jsonify({'error': 'Email already registered', 'code': 'EMAIL_EXISTS'}), 409
+            return jsonify({
+                'error': 'This email is already registered',
+                'code': 'EMAIL_EXISTS'
+            }), 409
+        
+        # Validate password strength
+        if len(data['password']) < 8:
+            return jsonify({'error': 'Password must be at least 8 characters long'}), 400
         
         # Create new user
         new_user = {
@@ -208,7 +221,7 @@ def register():
         # Create access token
         access_token = create_access_token(identity=str(result.inserted_id))
         
-        response = jsonify({
+        return jsonify({
             'message': 'Registration successful',
             'access_token': access_token,
             'user': {
@@ -216,12 +229,11 @@ def register():
                 'name': data['name'],
                 'email': data['email']
             }
-        })
-        return response, 201
+        }), 201
         
     except Exception as e:
         logger.error(f"Registration error: {str(e)}")
-        return jsonify({'error': str(e), 'code': 'SERVER_ERROR'}), 500
+        return jsonify({'error': 'An unexpected error occurred', 'code': 'SERVER_ERROR'}), 500
 
 @app.route('/v1/auth/login', methods=['POST'])
 def login():
