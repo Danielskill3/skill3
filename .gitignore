@@ -1,6 +1,5 @@
 cache/google-chrome/
 .env
-
 .cache/
 .config/
 node_modules
