@@ -16,7 +16,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # CORS Configuration
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "https://skill3-frontend.onrender.com"]}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "https://skill3-frontend-1.onrender.com"]}}, supports_credentials=True)
 
 # Database Configuration
 username = urllib.parse.quote_plus(os.getenv('MONGODB_USERNAME'))
