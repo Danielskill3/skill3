@@ -1,133 +1,145 @@
 import os
-import sys
-import logging
-from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+import urllib.parse
+from flask import Flask, request, jsonify, make_response
+from flask_pymongo import PyMongo
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, create_access_token
+import bcrypt
 from datetime import timedelta
+from bson.json_util import dumps
 
-# Add the parent directory to Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Load environment variables
+load_dotenv()
 
-# Use absolute import
-from skill3.core.config import settings
+# Create Flask app
+app = Flask(__name__)
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+# CORS Configuration
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "https://skill3-frontend.onrender.com"]}}, supports_credentials=True)
 
-def create_app():
-    app = Flask(__name__)
+# Database Configuration
+username = urllib.parse.quote_plus(os.getenv('MONGODB_USERNAME'))
+password = urllib.parse.quote_plus(os.getenv('MONGODB_PASSWORD'))
 
-    # Comprehensive CORS configuration
-    cors_origins = [
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-        'http://192.168.100.82:3000',
-        'https://skill3-frontend.onrender.com',
-        'https://skill3.onrender.com'
-    ]
+uri = f"mongodb+srv://{username}:{password}@cluster0.ubsrj.mongodb.net/{os.getenv('DB_NAME')}?retryWrites=true&w=majority"
+app.config['MONGO_URI'] = uri
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 
-    # CORS Configuration with detailed options
-    CORS(app, resources={
-        r"/v1/*": {
-            "origins": cors_origins,
-            "allow_headers": [
-                "Content-Type", 
-                "Authorization", 
-                "X-Requested-With",
-                "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Headers",
-                "Access-Control-Allow-Credentials"
-            ],
-            "supports_credentials": True,
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-        }
-    })
+# Initialize extensions
+mongo = PyMongo(app)
+jwt = JWTManager(app)
 
-    # Middleware to log and handle CORS preflight requests
-    @app.before_request
-    def log_request_info():
-        logger.debug(f'Request Method: {request.method}')
-        logger.debug(f'Request Origin: {request.headers.get("Origin")}')
-        logger.debug(f'Request Headers: {request.headers}')
+def build_preflight_response():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add('Access-Control-Allow-Headers', "*")
+    response.headers.add('Access-Control-Allow-Methods', "*")
+    return response
 
-    @app.after_request
-    def add_cors_headers(response):
-        origin = request.headers.get('Origin')
-        
-        # Always set these headers
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        response.headers['Access-Control-Allow-Headers'] = (
-            'Content-Type, Authorization, X-Requested-With, '
-            'Access-Control-Allow-Origin, Access-Control-Allow-Headers, '
-            'Access-Control-Allow-Credentials'
-        )
-        
-        # Set origin headers if it's in allowed origins
-        if origin and origin in cors_origins:
-            response.headers['Access-Control-Allow-Origin'] = origin
-            response.headers['Access-Control-Allow-Credentials'] = 'true'
-        elif origin:
-            # Fallback for development
-            response.headers['Access-Control-Allow-Origin'] = origin
-        
-        return response
+def build_actual_response(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
-    # JWT Configuration
-    app.config['JWT_SECRET_KEY'] = settings.JWT_SECRET_KEY
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
-
-    # Optional: Conditionally import authentication modules
+# Debug route to view users
+@app.route('/debug/users', methods=['GET'])
+def debug_users():
     try:
-        from skill3.auth.utils import mail
-        from skill3.auth.routes import auth_bp
+        users = list(mongo.db.users.find({}, {'email': 1, 'password': 1}))
+        response = jsonify(users)
+        return build_actual_response(response)
+    except Exception as e:
+        print(f"Debug route error: {str(e)}")
+        response = jsonify({'error': str(e)})
+        response.status_code = 500
+        return build_actual_response(response)
+
+# Helper function for password hashing
+def hash_password(password):
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+# Helper function for password verification
+def verify_password(password, hashed):
+    try:
+        return bcrypt.checkpw(password.encode('utf-8'), hashed)
+    except Exception as e:
+        print(f"Password verification error: {str(e)}")
+        return False
+
+@app.route('/register', methods=['POST', 'OPTIONS'])
+def register():
+    if request.method == 'OPTIONS':
+        return build_preflight_response()
+    
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        response = jsonify({'error': 'Email and password are required'})
+        response.status_code = 400
+        return build_actual_response(response)
+
+    # Check if user already exists
+    if mongo.db.users.find_one({'email': email}):
+        response = jsonify({'error': 'User already exists'})
+        response.status_code = 400
+        return build_actual_response(response)
+
+    try:
+        # Hash the password and store it
+        hashed_password = hash_password(password)
         
-        # Email Configuration
-        app.config['MAIL_SERVER'] = settings.MAIL_SERVER
-        app.config['MAIL_PORT'] = settings.MAIL_PORT
-        app.config['MAIL_USE_TLS'] = settings.MAIL_USE_TLS
-        app.config['MAIL_USERNAME'] = settings.MAIL_USERNAME
-        app.config['MAIL_PASSWORD'] = settings.MAIL_PASSWORD
-        app.config['MAIL_DEFAULT_SENDER'] = settings.MAIL_DEFAULT_SENDER
+        # Insert new user with binary password hash
+        mongo.db.users.insert_one({
+            'email': email,
+            'password': hashed_password,
+            'name': data.get('name', '')  # Store the user's name from registration
+        })
 
-        # LinkedIn OAuth Configuration
-        app.config['LINKEDIN_CLIENT_ID'] = settings.LINKEDIN_CLIENT_ID
-        app.config['LINKEDIN_CLIENT_SECRET'] = settings.LINKEDIN_CLIENT_SECRET
+        response = jsonify({'message': 'User registered successfully'})
+        response.status_code = 201
+        return build_actual_response(response)
 
-        # Frontend URL for password reset
-        app.config['FRONTEND_URL'] = settings.FRONTEND_URL
+    except Exception as e:
+        print(f"Registration error: {str(e)}")
+        response = jsonify({'error': 'Registration failed'})
+        response.status_code = 500
+        return build_actual_response(response)
 
-        # Initialize extensions
-        jwt = JWTManager(app)
-        mail.init_app(app)
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({"error": "Email and password are required"}), 400
+    
+    user = mongo.db.users.find_one({"email": email})
+    if user and bcrypt.checkpw(password.encode('utf-8'), user['password']):
+        token = create_access_token(identity=str(user['_id']))
+        
+        # Extract the part of the email before '@' as the name
+        name = user.get('name', user['email'].split('@')[0])
+        return jsonify({
+            "token": token,
+            "name": name,
+            "message": "Login successful"
+        }), 200
+    
+    return jsonify({"error": "Invalid email or password"}), 401
 
-        # Register blueprints
-        app.register_blueprint(auth_bp, url_prefix='/v1/auth')
-    except ImportError as e:
-        print(f"Authentication modules not imported. Error: {e}")
-
-    @app.route('/v1/auth/options', methods=['OPTIONS'])
-    def handle_options():
-        logger.debug("Handling OPTIONS request for CORS preflight")
-        response = jsonify(success=True)
-        response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        response.headers['Access-Control-Allow-Headers'] = (
-            'Content-Type, Authorization, X-Requested-With, '
-            'Access-Control-Allow-Origin, Access-Control-Allow-Headers, '
-            'Access-Control-Allow-Credentials'
-        )
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        return response, 200
-
-    @app.errorhandler(Exception)
-    def handle_exception(e):
-        logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
-        return jsonify(error=str(e)), 500
-
-    return app
+# Endpoint to save university details
+@app.route('/api/university', methods=['POST'])
+def save_university():
+    try:
+        data = request.json
+        # Insert university details into the database
+        mongo.db.universities.insert_one(data)
+        return jsonify({'message': 'University details saved successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app = create_app()
-    app.run(host=settings.HOST, port=settings.PORT, debug=settings.DEBUG)
+    app.run(host=os.getenv('HOST'), port=int(os.getenv('PORT')))
