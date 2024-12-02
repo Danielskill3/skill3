@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Job document -->
+  <rect x="50" y="80" width="120" height="160" rx="8" fill="#ffffff" opacity="0.9"/>
+  <rect x="70" y="100" width="80" height="10" rx="2" fill="#e1e1e1"/>
+  <rect x="70" y="120" width="60" height="10" rx="2" fill="#e1e1e1"/>
+  <rect x="70" y="140" width="70" height="10" rx="2" fill="#e1e1e1"/>
+  
+  <!-- Magnifying glass -->
+  <circle cx="280" cy="200" r="40" stroke="#3B82F6" stroke-width="8" fill="none"/>
+  <line x1="310" y1="230" x2="340" y2="260" stroke="#3B82F6" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Person silhouette -->
+  <circle cx="200" cy="150" r="20" fill="#3B82F6"/>
+  <path d="M170 220C170 196.804 188.804 180 212 180H228C251.196 180 270 196.804 270 220V240H170V220Z" fill="#3B82F6"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="320" cy="100" r="8" fill="#3B82F6"/>
+  <circle cx="80" cy="280" r="6" fill="#3B82F6"/>
+  <circle cx="350" cy="180" r="4" fill="#3B82F6"/>
+  
+  <!-- Additional decorative lines -->
+  <line x1="40" y1="160" x2="60" y2="160" stroke="#3B82F6" stroke-width="4" stroke-linecap="round"/>
+  <line x1="320" y1="320" x2="340" y2="320" stroke="#3B82F6" stroke-width="4" stroke-linecap="round"/>
+  <line x1="100" y1="40" x2="100" y2="60" stroke="#3B82F6" stroke-width="4" stroke-linecap="round"/>
+</svg>

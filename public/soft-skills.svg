@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="400" cy="300" r="250" fill="#1a1a2e" />
+  
+  <!-- Puzzle Pieces -->
+  <path d="M350 200 L450 200 L450 250 C450 270 470 270 470 250 L470 200 L520 200 L520 300 L470 300 L470 250 C470 230 450 230 450 250 L450 300 L350 300 Z" fill="#3498db" />
+  <path d="M350 320 L450 320 L450 370 C450 390 470 390 470 370 L470 320 L520 320 L520 420 L470 420 L470 370 C470 350 450 350 450 370 L450 420 L350 420 Z" fill="#2ecc71" />
+  
+  <!-- Gears -->
+  <circle cx="300" cy="400" r="30" stroke="#e74c3c" stroke-width="8" fill="none" />
+  <circle cx="500" cy="400" r="30" stroke="#e74c3c" stroke-width="8" fill="none" />
+  
+  <!-- Icons -->
+  <rect x="280" cy="200" width="40" height="40" rx="5" fill="#f1c40f" />
+  <rect x="480" cy="200" width="40" height="40" rx="5" fill="#9b59b6" />
+  
+  <!-- Connecting Lines -->
+  <line x1="300" y1="250" x2="300" y2="350" stroke="#3498db" stroke-width="2" />
+  <line x1="500" y1="250" x2="500" y2="350" stroke="#3498db" stroke-width="2" />
+  
+  <!-- Text Labels -->
+  <text x="270" y="190" fill="#fff" font-family="Arial" font-size="12">Communication</text>
+  <text x="480" y="190" fill="#fff" font-family="Arial" font-size="12">Teamwork</text>
+  <text x="370" y="450" fill="#fff" font-family="Arial" font-size="12">Problem-Solving</text>
+</svg>
