@@ -16,7 +16,13 @@ load_dotenv()
 app = Flask(__name__)
 
 # CORS Configuration
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "https://skill3-frontend-1.onrender.com"]}}, supports_credentials=True)
+CORS(app, 
+     resources={r"/*": {
+         "origins": "http://localhost:3000",
+         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         "allow_headers": ["Content-Type", "Authorization"],
+         "supports_credentials": True
+     }})
 
 # Database Configuration
 username = urllib.parse.quote_plus(os.getenv('MONGODB_USERNAME'))
@@ -30,29 +36,18 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 mongo = PyMongo(app)
 jwt = JWTManager(app)
 
-def build_preflight_response():
-    response = make_response()
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add('Access-Control-Allow-Headers', "*")
-    response.headers.add('Access-Control-Allow-Methods', "*")
-    return response
-
-def build_actual_response(response):
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    return response
-
 # Debug route to view users
 @app.route('/debug/users', methods=['GET'])
 def debug_users():
     try:
         users = list(mongo.db.users.find({}, {'email': 1, 'password': 1}))
         response = jsonify(users)
-        return build_actual_response(response)
+        return response
     except Exception as e:
         print(f"Debug route error: {str(e)}")
         response = jsonify({'error': str(e)})
         response.status_code = 500
-        return build_actual_response(response)
+        return response
 
 # Helper function for password hashing
 def hash_password(password):
@@ -69,8 +64,8 @@ def verify_password(password, hashed):
 @app.route('/register', methods=['POST', 'OPTIONS'])
 def register():
     if request.method == 'OPTIONS':
-        return build_preflight_response()
-    
+        return ''
+
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
@@ -78,13 +73,13 @@ def register():
     if not email or not password:
         response = jsonify({'error': 'Email and password are required'})
         response.status_code = 400
-        return build_actual_response(response)
+        return response
 
     # Check if user already exists
     if mongo.db.users.find_one({'email': email}):
         response = jsonify({'error': 'User already exists'})
         response.status_code = 400
-        return build_actual_response(response)
+        return response
 
     try:
         # Hash the password and store it
@@ -99,16 +94,19 @@ def register():
 
         response = jsonify({'message': 'User registered successfully'})
         response.status_code = 201
-        return build_actual_response(response)
+        return response
 
     except Exception as e:
         print(f"Registration error: {str(e)}")
         response = jsonify({'error': 'Registration failed'})
         response.status_code = 500
-        return build_actual_response(response)
+        return response
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST', 'OPTIONS'])
 def login():
+    if request.method == 'OPTIONS':
+        return '', 204
+
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
@@ -138,6 +136,39 @@ def save_university():
         # Insert university details into the database
         mongo.db.universities.insert_one(data)
         return jsonify({'message': 'University details saved successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Endpoint to save personality type
+@app.route('/api/personality', methods=['POST'])
+def save_personality():
+    try:
+        data = request.json
+        # Insert personality type into the database
+        mongo.db.personalities.insert_one(data)
+        return jsonify({'message': 'Personality type saved successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Endpoint to save work model
+@app.route('/api/work-model', methods=['POST'])
+def save_work_model():
+    try:
+        data = request.json
+        # Insert work model into the database
+        mongo.db.work_models.insert_one(data)
+        return jsonify({'message': 'Work model saved successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Endpoint to save industry selection
+@app.route('/api/industry', methods=['POST'])
+def save_industry():
+    try:
+        data = request.json
+        # Insert industry selection into the database
+        mongo.db.industries.insert_one(data)
+        return jsonify({'message': 'Industry selection saved successfully'}), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
