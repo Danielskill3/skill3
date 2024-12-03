@@ -23,6 +23,10 @@ const StudyPage = () => {
     navigate(-1);
   };
 
+  const handleSkip = () => {
+    navigate('/career-path');
+  };
+
   return (
     <div className="fixed inset-0 bg-[#0A0A0F] text-white flex flex-col">
       {/* Top section with progress bar */}
@@ -38,7 +42,7 @@ const StudyPage = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-grow px-6 py-8">
+      <div className="flex-grow px-6 py-8 overflow-y-auto pb-24">
         <div className="max-w-full mx-auto space-y-8">
           {/* Title with icon */}
           <div className="flex items-center gap-4">
@@ -81,9 +85,9 @@ const StudyPage = () => {
       </div>
 
       {/* Bottom buttons - fixed at bottom */}
-      <div className="border-t border-gray-800">
+      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-800 bg-[#0A0A0F]">
         <div className="max-w-md mx-auto px-6 py-4 flex justify-between items-center">
-          <button className="text-gray-400 py-2">Skip for now</button>
+          <button onClick={handleSkip} className="text-gray-400 py-2 hover:text-gray-300 transition-colors">Skip for now</button>
           <BlobButton onClick={handleContinue}>Continue</BlobButton>
         </div>
       </div>

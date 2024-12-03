@@ -7,6 +7,11 @@ import Welcome from './components/Welcome';
 import StudyPage from './components/StudyPage';
 import ManualUniversityPage from './components/ManualUniversityPage';
 import CareerPathPage from './components/CareerPathPage';
+import PersonalityPage from './components/PersonalityPage';
+import WorkModelPage from './components/WorkModelPage';
+import CareerGoalPage from './components/CareerGoalPage';
+import IndustryPage from './components/IndustryPage';
+import CompanyPage from './components/CompanyPage';
 
 function App() {
   return (
@@ -19,6 +24,11 @@ function App() {
         <Route path="/study" element={<StudyPage />} />
         <Route path="/manual-university" element={<ManualUniversityPage />} />
         <Route path="/career-path" element={<CareerPathPage />} />
+        <Route path="/personality" element={<PersonalityPage />} />
+        <Route path="/work-model" element={<WorkModelPage />} />
+        <Route path="/career-goal" element={<CareerGoalPage />} />
+        <Route path="/industry" element={<IndustryPage />} />
+        <Route path="/company" element={<CompanyPage />} />
       </Routes>
     </Router>
   );

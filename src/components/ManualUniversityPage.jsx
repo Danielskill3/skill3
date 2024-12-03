@@ -100,6 +100,10 @@ const ManualUniversityPage = () => {
     }
   };
 
+  const handleSkip = () => {
+    navigate('/career-path');
+  };
+
   return (
     <div className="fixed inset-0 bg-[#0A0A0F] text-white flex flex-col">
       {/* Top section with progress bar */}
@@ -115,7 +119,7 @@ const ManualUniversityPage = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-grow px-6 py-8 overflow-y-auto">
+      <div className="flex-grow px-6 py-8 overflow-y-auto pb-24">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-semibold mb-8">Tell us about your University!</h1>
           
@@ -229,10 +233,11 @@ const ManualUniversityPage = () => {
         </div>
       </div>
 
-      {/* Bottom button */}
-      <div className="border-t border-gray-700">
-        <div className="max-w-full mx-auto px-6 py-4 flex justify-end">
-          <BlobButton onClick={handleSave}>Save</BlobButton>
+      {/* Bottom buttons - fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-800 bg-[#0A0A0F]">
+        <div className="max-w-md mx-auto px-6 py-4 flex justify-between items-center">
+          <button onClick={handleSkip} className="text-gray-400 py-2 hover:text-gray-300 transition-colors">Skip for now</button>
+          <BlobButton onClick={handleSave}>Continue</BlobButton>
         </div>
       </div>
     </div>

@@ -31,7 +31,11 @@ const CareerPathPage = () => {
   };
 
   const handleContinue = () => {
-    navigate('/next-step');
+    navigate('/personality');
+  };
+
+  const handleSkip = () => {
+    navigate('/personality');
   };
 
   return (
@@ -49,42 +53,53 @@ const CareerPathPage = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-grow px-4 py-6 md:px-6 md:py-10 flex flex-col items-center">
-        <h1 className="text-xl md:text-2xl font-semibold mb-8 md:mb-16 text-center">
-          What's your preferred career path?
-        </h1>
+      <div className="flex-grow px-6 py-8 overflow-y-auto pb-24 flex flex-col">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-8 h-8 bg-[#1A1A1F] rounded-lg flex items-center justify-center">
+            🎯
+          </div>
+          <h1 className="text-xl font-medium">
+            What's your preferred career path?
+          </h1>
+        </div>
 
-        <div className="flex flex-col md:flex-row justify-around w-full max-w-full md:max-w-4xl mb-8 md:mb-16 space-y-4 md:space-y-0 md:space-x-6">
+        <div className="flex flex-col md:flex-row justify-between w-full gap-4 mb-auto">
           <button
             onClick={() => handleSelect('Specialist')}
-            className={`flex-1 border border-gray-500 px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors ${selectedPath === 'Specialist' ? 'bg-gray-700' : ''}`}
+            className={`w-full md:w-1/3 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-colors text-center ${
+              selectedPath === 'Specialist' ? 'bg-[#0066FF] text-white' : ''
+            }`}
           >
             Specialist
           </button>
 
           <button
             onClick={() => handleSelect('Leadership')}
-            className={`flex-1 border border-gray-500 px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors ${selectedPath === 'Leadership' ? 'bg-gray-700' : ''}`}
+            className={`w-full md:w-1/3 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-colors text-center ${
+              selectedPath === 'Leadership' ? 'bg-[#0066FF] text-white' : ''
+            }`}
           >
             Leadership
           </button>
 
           <button
             onClick={() => handleSelect("I don't have a preferred career path")}
-            className={`flex-1 border border-gray-500 px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors ${selectedPath === "I don't have a preferred career path" ? 'bg-gray-700' : ''}`}
+            className={`w-full md:w-1/3 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-colors text-center ${
+              selectedPath === "I don't have a preferred career path" ? 'bg-[#0066FF] text-white' : ''
+            }`}
           >
             I don't have a preferred career path
           </button>
         </div>
+      </div>
 
-        <div className="flex flex-col md:flex-row justify-around w-full max-w-full md:max-w-2xl space-y-4 md:space-y-0 md:space-x-6">
-          <button className="flex-1 bg-transparent text-white hover:bg-gray-800 px-4 py-3 rounded-lg">
-            Skip for now
-          </button>
-
+      {/* Bottom buttons - fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-[#2A2A2F] bg-[#0A0A0F]">
+        <div className="max-w-full mx-auto px-6 py-4 flex justify-between items-center">
+          <button onClick={handleSkip} className="text-gray-400 py-2 hover:text-gray-300 transition-colors">Skip for now</button>
           <BlobButton
             onClick={handleContinue}
-            className="flex-1 bg-blue-500 text-white"
+            disabled={!selectedPath}
           >
             Continue
           </BlobButton>
