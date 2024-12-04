@@ -18,7 +18,7 @@ const StudyPage = () => {
   const handleContinue = async () => {
     if (selectedUniversity) {
       try {
-        const response = await fetch(`${import.meta.env.NODE_ENV === 'production' ? 'https://skill3.onrender.com/api/schools' : 'http://localhost:8000/api/schools'}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/schools`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
