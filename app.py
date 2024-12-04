@@ -172,5 +172,16 @@ def save_industry():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Endpoint to save new school
+@app.route('/api/schools', methods=['POST'])
+def save_school():
+    try:
+        data = request.json
+        # Insert new school into the database
+        mongo.db.schools.insert_one(data)
+        return jsonify({'message': 'School saved successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host=os.getenv('HOST'), port=int(os.getenv('PORT')))
