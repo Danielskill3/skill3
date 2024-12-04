@@ -36,11 +36,22 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 mongo = PyMongo(app)
 jwt = JWTManager(app)
 
+# Ensure email field is indexed for fast lookups
+mongo.db.users.create_index('email', unique=True)
+
+# Simple in-memory cache for demonstration purposes
+cache = {}
+
 # Debug route to view users
 @app.route('/debug/users', methods=['GET'])
 def debug_users():
     try:
+        # Check cache first
+        if 'users' in cache:
+            return jsonify(cache['users'])
+
         users = list(mongo.db.users.find({}, {'email': 1, 'password': 1}))
+        cache['users'] = users  # Store in cache
         response = jsonify(users)
         return response
     except Exception as e:
