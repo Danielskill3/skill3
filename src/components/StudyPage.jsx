@@ -7,16 +7,36 @@ const StudyPage = () => {
   const navigate = useNavigate();
   const [selectedUniversity, setSelectedUniversity] = useState('');
   const [customUniversity, setCustomUniversity] = useState('');
-  const universities = [
+  const [universities, setUniversities] = useState([
     'University of Copenhagen',
     'Aarhus University',
     'Technical University of Denmark',
     'Aalborg University',
     'Copenhagen Business School'
-  ];
+  ]);
 
-  const handleContinue = () => {
-    navigate('/career-path');
+  const handleContinue = async () => {
+    if (selectedUniversity) {
+      try {
+        const response = await fetch(`${import.meta.env.NODE_ENV === 'production' ? 'https://skill3.onrender.com/api/schools' : 'http://localhost:8000/api/schools'}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ school: selectedUniversity }),
+        });
+
+        if (response.ok) {
+          // Update dropdown with new school
+          setUniversities((prev) => [...prev, selectedUniversity]);
+          navigate('/career-path');
+        } else {
+          console.error('Failed to save school');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
   };
 
   const handleBack = () => {
@@ -60,8 +80,8 @@ const StudyPage = () => {
               className="w-full p-4 bg-[#0E0E12] text-white rounded-lg border border-[#1A1A1F] appearance-none cursor-pointer focus:outline-none focus:border-blue-500"
             >
               <option value="">Start typing to select your school</option>
-              {universities.map((uni, index) => (
-                <option key={index} value={uni} className="bg-[#0E0E12]">{uni}</option>
+              {universities.map((university) => (
+                <option key={university} value={university}>{university}</option>
               ))}
             </select>
             <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
@@ -85,10 +105,15 @@ const StudyPage = () => {
       </div>
 
       {/* Bottom buttons - fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-800 bg-[#0A0A0F]">
-        <div className="max-w-md mx-auto px-6 py-4 flex justify-between items-center">
-          <button onClick={handleSkip} className="text-gray-400 py-2 hover:text-gray-300 transition-colors">Skip for now</button>
-          <BlobButton onClick={handleContinue}>Continue</BlobButton>
+      <div className="fixed bottom-0 left-0 right-0 border-t border-[#2A2A2F] bg-[#0A0A0F]">
+        <div className="max-w-full mx-auto px-6 py-4 flex flex-col-reverse md:flex-row justify-between items-center gap-2 md:gap-6">
+          <button onClick={handleSkip} className="text-gray-400 py-2 hover:text-gray-300 transition-colors text-lg">Skip for now</button>
+          <BlobButton
+            onClick={handleContinue}
+            disabled={!selectedUniversity}
+          >
+            Continue
+          </BlobButton>
         </div>
       </div>
     </div>

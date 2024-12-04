@@ -1,54 +1,24 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
 import BlobButton from './BlobButton';
 
-// Only keep regions data as it's more specific to universities
-const regionsByCountry = {
-  "United States": [
-    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
-    "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
-    "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
-    "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
-    "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
-    "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-    "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
-    "Wisconsin", "Wyoming"
-  ],
-  "United Kingdom": [
-    "England", "Scotland", "Wales", "Northern Ireland"
-  ],
-  "Canada": [
-    "Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador",
-    "Nova Scotia", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan"
-  ],
-};
-
 const ManualUniversityPage = () => {
-  const navigate = useNavigate();
-  const [countries, setCountries] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     schoolName: '',
-    emailAddress: '',
-    phoneNumber: '',
+    email: '',
+    phone: '',
     country: '',
     region: '',
-    websiteURL: ''
+    website: '',
   });
+  const [countries, setCountries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch countries on component mount
   useEffect(() => {
     const fetchCountries = async () => {
       try {
         const response = await fetch('https://restcountries.com/v3.1/all');
         const data = await response.json();
-        
-        // Sort countries by name
-        const sortedCountries = data
-          .map(country => country.name.common)
-          .sort((a, b) => a.localeCompare(b));
-        
+        const sortedCountries = data.map(country => country.name.common).sort();
         setCountries(sortedCountries);
       } catch (error) {
         console.error('Error fetching countries:', error);
@@ -60,184 +30,143 @@ const ManualUniversityPage = () => {
     fetchCountries();
   }, []);
 
-  // Get available regions based on selected country
-  const availableRegions = useMemo(() => {
-    return regionsByCountry[formData.country] || [];
-  }, [formData.country]);
-
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-      // Reset region if country changes
-      ...(name === 'country' ? { region: '' } : {})
-    }));
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleBack = () => {
-    navigate(-1);
-  };
-
-  const handleSave = async () => {
+  const handleSubmit = async () => {
     try {
-      const response = await fetch(`${import.meta.env.NODE_ENV === 'production' ? 'https://skill3.onrender.com/api/university' : 'http://localhost:8000/api/university'}`, {
+      const response = await fetch('/api/schools', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       });
-
       if (response.ok) {
-        console.log('University details saved successfully');
-        navigate('/career-path');
+        console.log('University details saved successfully.');
+        // Optionally, redirect or update the UI
       } else {
-        console.error('Failed to save university details');
+        console.error('Failed to save university details.');
       }
     } catch (error) {
       console.error('Error:', error);
     }
   };
 
-  const handleSkip = () => {
-    navigate('/career-path');
-  };
-
   return (
-    <div className="fixed inset-0 bg-[#0A0A0F] text-white flex flex-col">
-      {/* Top section with progress bar */}
-      <div className="px-6 py-4">
-        <div className="flex items-center gap-4">
-          <button onClick={handleBack} className="text-white p-2">
-            <FaArrowLeft />
-          </button>
-          <div className="w-full bg-[#1A1A1F] h-3 rounded-full">
-            <div className="bg-blue-500 h-full rounded-full" style={{ width: '30%' }}></div>
-          </div>
-        </div>
+    <div className="fixed inset-0 flex bg-[#0A0A0F]">
+      {/* Left side illustration */}
+      <div className="w-1/2 h-screen flex items-center justify-center">
+        <img 
+          src="/welcome.jpeg" 
+          alt="University illustration" 
+          className="h-full w-full object-contain"
+        />
       </div>
 
-      {/* Main content */}
-      <div className="flex-grow px-6 py-8 overflow-y-auto pb-24">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-semibold mb-8">Tell us about your University!</h1>
-          
-          <div className="flex flex-col md:flex-row justify-between gap-12">
-            {/* Left side - illustration */}
-            <div className="w-full md:w-1/2 flex items-center justify-center mb-6 md:mb-0">
-              <img 
-                src="/welcome.jpeg"
-                alt="University illustration" 
-                className="max-w-full h-auto"
+      {/* Right side form */}
+      <div className="w-1/2 h-screen overflow-y-auto px-16 py-8 text-white">
+        <h1 className="text-2xl mb-16 text-center">Tell us about your University!</h1>
+        
+        <div className="flex flex-col justify-between h-[calc(100vh-12rem)]">
+          <div className="space-y-12">
+            <div className="relative">
+              <input
+                type="text"
+                name="schoolName"
+                value={formData.schoolName}
+                onChange={handleChange}
+                placeholder=" "
+                className="w-full bg-transparent border border-[#2A2A2F] rounded p-3 focus:outline-none peer"
               />
+              <label className="absolute text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-[#0A0A0F] px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-gray-400 left-1">
+                School Name
+              </label>
             </div>
 
-            {/* Right side - form */}
-            <div className="w-full md:w-1/2 space-y-6">
-              <div className="relative mb-8">
-                <input
-                  type="text"
-                  name="schoolName"
-                  value={formData.schoolName}
-                  onChange={handleInputChange}
-                  className="w-full pt-6 pb-2 px-4 bg-[#1A1A1F] text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500 peer"
-                  placeholder=" "
-                />
-                <label className="absolute left-4 -top-4 text-gray-500 text-sm transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-sm">
-                  School Name
-                </label>
-              </div>
+            <div className="relative">
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder=" "
+                className="w-full bg-transparent border border-[#2A2A2F] rounded p-3 focus:outline-none peer"
+              />
+              <label className="absolute text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-[#0A0A0F] px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-gray-400 left-1">
+                Email Address
+              </label>
+            </div>
 
-              <div className="relative mb-8">
-                <input
-                  type="email"
-                  name="emailAddress"
-                  value={formData.emailAddress}
-                  onChange={handleInputChange}
-                  className="w-full pt-6 pb-2 px-4 bg-[#1A1A1F] text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500 peer"
-                  placeholder=" "
-                />
-                <label className="absolute left-4 -top-4 text-gray-500 text-sm transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-sm">
-                  Email Address
-                </label>
-              </div>
+            <div className="relative">
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder=" "
+                className="w-full bg-transparent border border-[#2A2A2F] rounded p-3 focus:outline-none peer"
+              />
+              <label className="absolute text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-[#0A0A0F] px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-gray-400 left-1">
+                Phone number
+              </label>
+            </div>
 
-              <div className="relative mb-8">
-                <input
-                  type="tel"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                  className="w-full pt-6 pb-2 px-4 bg-[#1A1A1F] text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500 peer"
-                  placeholder=" "
-                />
-                <label className="absolute left-4 -top-4 text-gray-500 text-sm transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-sm">
-                  Phone Number
-                </label>
-              </div>
+            <div className="relative">
+              <select
+                name="country"
+                value={formData.country}
+                onChange={handleChange}
+                className="w-full bg-black text-white border border-[#2A2A2F] rounded p-3 focus:outline-none peer appearance-none"
+              >
+                <option value="" disabled></option>
+                {countries.map((country) => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+              <label className="absolute text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-[#0A0A0F] px-2 peer-focus:px-2 peer-focus:text-gray-400 left-1">
+                Country
+              </label>
+            </div>
 
-              <div className="relative mb-8">
-                <select
-                  name="country"
-                  value={formData.country}
-                  onChange={handleInputChange}
-                  className="w-full pt-6 pb-2 px-4 bg-[#1A1A1F] text-white rounded-lg border border-gray-700 appearance-none cursor-pointer focus:outline-none focus:border-blue-500 peer"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <option value="">Loading countries...</option>
-                  ) : (
-                    <>
-                      <option value="">Select a country</option>
-                      {countries.map((country) => (
-                        <option key={country} value={country}>{country}</option>
-                      ))}
-                    </>
-                  )}
-                </select>
-                <label className="absolute left-4 -top-4 text-gray-500 text-sm transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-sm">
-                  Country
-                </label>
-              </div>
+            <div className="relative">
+              <input
+                type="text"
+                name="region"
+                value={formData.region}
+                onChange={handleChange}
+                placeholder=" "
+                className="w-full bg-black text-white border border-[#2A2A2F] rounded p-3 focus:outline-none peer"
+              />
+              <label className="absolute text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-[#0A0A0F] px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-gray-400 left-1">
+                Region/State/Province
+              </label>
+            </div>
 
-              <div className="relative mb-8">
-                <input
-                  type="text"
-                  name="region"
-                  value={formData.region}
-                  onChange={handleInputChange}
-                  className="w-full pt-6 pb-2 px-4 bg-[#1A1A1F] text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500 peer"
-                  placeholder=" "
-                />
-                <label className="absolute left-4 -top-4 text-gray-500 text-sm transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-sm">
-                  Region/State/Province/County
-                </label>
-              </div>
-
-              <div className="relative mb-8">
-                <input
-                  type="url"
-                  name="websiteURL"
-                  value={formData.websiteURL}
-                  onChange={handleInputChange}
-                  className="w-full pt-6 pb-2 px-4 bg-[#1A1A1F] text-white rounded-lg border border-gray-700 focus:outline-none focus:border-blue-500 peer"
-                  placeholder=" "
-                />
-                <label className="absolute left-4 -top-4 text-gray-500 text-sm transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-4 peer-focus:text-sm">
-                  School's website URL (optional)
-                </label>
-              </div>
+            <div className="relative">
+              <input
+                type="url"
+                name="website"
+                value={formData.website}
+                onChange={handleChange}
+                placeholder=" "
+                className="w-full bg-transparent border border-[#2A2A2F] rounded p-3 focus:outline-none peer"
+              />
+              <label className="absolute text-gray-400 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-[#0A0A0F] px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-gray-400 left-1">
+                School's website URL
+                <span className="text-sm text-gray-400 ml-1">(optional)</span>
+              </label>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Bottom buttons - fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-800 bg-[#0A0A0F]">
-        <div className="max-w-md mx-auto px-6 py-4 flex justify-between items-center">
-          <button onClick={handleSkip} className="text-gray-400 py-2 hover:text-gray-300 transition-colors">Skip for now</button>
-          <BlobButton onClick={handleSave}>Continue</BlobButton>
+          <BlobButton
+            onClick={handleSubmit}
+            className="w-full mt-8"
+          >
+            Save
+          </BlobButton>
         </div>
       </div>
     </div>
