@@ -18,7 +18,7 @@ app = Flask(__name__)
 # CORS Configuration
 CORS(app, 
      resources={r"/*": {
-         "origins": "http://localhost:3000",
+         "origins": ["http://localhost:3000", "https://skill3-frontend-1.onrender.com"],
          "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
          "allow_headers": ["Content-Type", "Authorization"],
          "supports_credentials": True
