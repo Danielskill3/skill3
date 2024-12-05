@@ -56,9 +56,9 @@ const ManualUniversityPage = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex bg-[#0A0A0F]">
-      {/* Left side illustration */}
-      <div className="w-1/2 h-screen flex items-center justify-center">
+    <div className="fixed inset-0 flex flex-col md:flex-row bg-[#0A0A0F]">
+      {/* Image section */}
+      <div className="w-full md:w-1/2 h-[40vh] md:h-screen flex items-center justify-center">
         <img 
           src="/welcome.jpeg" 
           alt="University illustration" 
@@ -66,8 +66,8 @@ const ManualUniversityPage = () => {
         />
       </div>
 
-      {/* Right side form */}
-      <div className="w-1/2 h-screen overflow-y-auto px-16 py-8 text-white">
+      {/* Form section */}
+      <div className="w-full md:w-1/2 h-[60vh] md:h-screen overflow-y-auto px-8 md:px-16 py-8 text-white">
         <h1 className="text-2xl mb-16 text-center">Tell us about your University!</h1>
         
         <div className="flex flex-col justify-between h-[calc(100vh-12rem)]">
