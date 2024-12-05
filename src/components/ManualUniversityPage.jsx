@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import BlobButton from './BlobButton';
+import CountryList from './CountryList';
 
 const ManualUniversityPage = () => {
   const [formData, setFormData] = useState({
@@ -10,25 +11,7 @@ const ManualUniversityPage = () => {
     region: '',
     website: '',
   });
-  const [countries, setCountries] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        const response = await fetch('https://restcountries.com/v3.1/all');
-        const data = await response.json();
-        const sortedCountries = data.map(country => country.name.common).sort();
-        setCountries(sortedCountries);
-      } catch (error) {
-        console.error('Error fetching countries:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCountries();
-  }, []);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,21 +20,38 @@ const ManualUniversityPage = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('/api/schools', {
+      // Basic validation
+      if (!formData.schoolName || !formData.email || !formData.country) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      const response = await fetch('https://skill3.onrender.com/api/university', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       });
+
       if (response.ok) {
-        console.log('University details saved successfully.');
-        // Optionally, redirect or update the UI
+        alert('University details saved successfully!');
+        // Clear form
+        setFormData({
+          schoolName: '',
+          email: '',
+          phone: '',
+          country: '',
+          region: '',
+          website: '',
+        });
       } else {
-        console.error('Failed to save university details.');
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to save university details');
       }
     } catch (error) {
       console.error('Error:', error);
+      alert('Failed to save university details. Please try again.');
     }
   };
 
@@ -121,8 +121,8 @@ const ManualUniversityPage = () => {
                 onChange={handleChange}
                 className="w-full bg-black text-white border border-[#2A2A2F] rounded p-3 focus:outline-none peer appearance-none"
               >
-                <option value="" disabled></option>
-                {countries.map((country) => (
+                <option value="" disabled>Select a country</option>
+                {CountryList.countries.map((country) => (
                   <option key={country} value={country}>{country}</option>
                 ))}
               </select>
