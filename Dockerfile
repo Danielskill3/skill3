@@ -16,8 +16,8 @@ RUN pip install gunicorn
 # Copy the rest of the application code into the container
 COPY . .
 
-# Expose port 5000
-EXPOSE 5000
+# Expose port 8000
+EXPOSE 8000
 
-# Run the application with Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+# Run the application with Gunicorn on port 8000
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
