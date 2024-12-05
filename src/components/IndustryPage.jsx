@@ -10,7 +10,7 @@ const IndustryPage = () => {
   const handleContinue = async () => {
     if (selectedIndustry) {
       try {
-        const response = await fetch(`${import.meta.env.NODE_ENV === 'production' ? 'https://skill3.onrender.com/api/industry' : 'http://localhost:8000/api/industry'}`, {
+        const response = await fetch('https://skill3.onrender.com/api/industry', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
