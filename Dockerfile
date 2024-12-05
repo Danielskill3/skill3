@@ -10,11 +10,14 @@ COPY requirements.txt .
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install Gunicorn for production server
+RUN pip install gunicorn
+
 # Copy the rest of the application code into the container
 COPY . .
 
-# Make port 5000 available to the world outside this container
+# Expose port 5000
 EXPOSE 5000
 
-# Run the application
-CMD ["python", "app.py", "--host", "0.0.0.0"]
+# Run the application with Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
