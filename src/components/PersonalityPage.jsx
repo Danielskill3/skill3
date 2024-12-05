@@ -21,7 +21,7 @@ const PersonalityPage = () => {
   const handleContinue = async () => {
     if (selectedPersonality) {
       try {
-        const response = await fetch(`${import.meta.env.NODE_ENV === 'production' ? 'https://skill3.onrender.com/api/personality' : 'http://localhost:8000/api/personality'}`, {
+        const response = await fetch('https://skill3.onrender.com/api/personality', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
