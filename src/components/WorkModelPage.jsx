@@ -13,15 +13,16 @@ const WorkModelPage = () => {
     setSelectedModel(model);
   };
 
+
   const handleContinue = async () => {
     if (selectedModel) {
       try {
-        const response = await fetch(`${import.meta.env.NODE_ENV === 'production' ? 'https://skill3.onrender.com/api/work-model' : 'http://localhost:8000/api/work-model'}`, {
+        const response = await fetch('https://skill3.onrender.com/api/work-model', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ workModel: selectedModel }),
+          body: JSON.stringify({ model: selectedModel }),
         });
 
         if (response.ok) {
