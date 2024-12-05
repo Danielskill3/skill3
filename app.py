@@ -64,6 +64,7 @@ def debug_users():
 def hash_password(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
+
 # Helper function for password verification
 def verify_password(password, hashed):
     try:
