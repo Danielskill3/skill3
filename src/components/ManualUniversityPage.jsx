@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BlobButton from './BlobButton';
 import CountryList from './CountryList';
 
 const ManualUniversityPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     schoolName: '',
     email: '',
@@ -11,7 +13,6 @@ const ManualUniversityPage = () => {
     region: '',
     website: '',
   });
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,16 +36,8 @@ const ManualUniversityPage = () => {
       });
 
       if (response.ok) {
-        alert('University details saved successfully!');
-        // Clear form
-        setFormData({
-          schoolName: '',
-          email: '',
-          phone: '',
-          country: '',
-          region: '',
-          website: '',
-        });
+        // Navigate to the next page
+        navigate('/personality');
       } else {
         const error = await response.json();
         throw new Error(error.message || 'Failed to save university details');
@@ -163,9 +156,9 @@ const ManualUniversityPage = () => {
 
           <BlobButton
             onClick={handleSubmit}
-            className="w-full mt-8"
+            className="w-full py-3 px-6 text-lg bg-[#0066FF] hover:bg-blue-700 text-white rounded-lg transition-colors mt-8"
           >
-            Save
+            Continue
           </BlobButton>
         </div>
       </div>
