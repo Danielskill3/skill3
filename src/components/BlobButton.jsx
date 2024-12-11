@@ -1,5 +1,6 @@
 import React from 'react';
 import '../styles/BlobButton.css';
+import PropTypes from 'prop-types';
 
 const BlobButton = ({ children, disabled, type = 'button', onClick, className = '' }) => {
   return (
@@ -38,6 +39,13 @@ const BlobButton = ({ children, disabled, type = 'button', onClick, className = 
       </div>
     </>
   );
+};
+BlobButton.propTypes = {
+  children: PropTypes.node,
+  disabled: PropTypes.bool,
+  type: PropTypes.string,
+  onClick: PropTypes.func,
+  className: PropTypes.string
 };
 
 export default BlobButton;

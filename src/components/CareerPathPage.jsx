@@ -66,8 +66,10 @@ const CareerPathPage = () => {
         <div className="flex flex-col md:flex-row justify-between w-full gap-4 mb-auto">
           <button
             onClick={() => handleSelect('Specialist')}
-            className={`w-full md:w-1/3 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-colors text-center ${
-              selectedPath === 'Specialist' ? 'bg-[#0066FF] text-white' : ''
+            className={`w-full md:w-1/3 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-all duration-300 text-center ${
+              selectedPath === 'Specialist' 
+                ? 'bg-[#0066FF] text-white scale-105 shadow-[0_0_30px_rgba(0,102,255,0.3)] border-[#0066FF]' 
+                : 'hover:scale-102 hover:shadow-lg'
             }`}
           >
             Specialist
@@ -75,8 +77,10 @@ const CareerPathPage = () => {
 
           <button
             onClick={() => handleSelect('Leadership')}
-            className={`w-full md:w-1/3 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-colors text-center ${
-              selectedPath === 'Leadership' ? 'bg-[#0066FF] text-white' : ''
+            className={`w-full md:w-1/3 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-all duration-300 text-center ${
+              selectedPath === 'Leadership' 
+                ? 'bg-[#0066FF] text-white scale-105 shadow-[0_0_30px_rgba(0,102,255,0.3)] border-[#0066FF]' 
+                : 'hover:scale-102 hover:shadow-lg'
             }`}
           >
             Leadership
@@ -84,8 +88,10 @@ const CareerPathPage = () => {
 
           <button
             onClick={() => handleSelect("I don't have a preferred career path")}
-            className={`w-full md:w-1/3 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-colors text-center ${
-              selectedPath === "I don't have a preferred career path" ? 'bg-[#0066FF] text-white' : ''
+            className={`w-full md:w-1/3 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-all duration-300 text-center ${
+              selectedPath === "I don't have a preferred career path" 
+                ? 'bg-[#0066FF] text-white scale-105 shadow-[0_0_30px_rgba(0,102,255,0.3)] border-[#0066FF]' 
+                : 'hover:scale-102 hover:shadow-lg'
             }`}
           >
             I don't have a preferred career path

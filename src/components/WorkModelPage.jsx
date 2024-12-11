@@ -65,8 +65,10 @@ const WorkModelPage = () => {
             <button
               key={model}
               onClick={() => handleSelect(model)}
-              className={`flex-1 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-colors text-center text-2xl ${
-                selectedModel === model ? 'bg-[#0066FF] text-white' : ''
+              className={`flex-1 py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-all duration-300 text-center text-2xl ${
+                selectedModel === model 
+                  ? 'bg-[#0066FF] text-white scale-105 shadow-[0_0_30px_rgba(0,102,255,0.3)] border-[#0066FF]' 
+                  : 'hover:scale-102 hover:shadow-lg'
               }`}
             >
               {model}

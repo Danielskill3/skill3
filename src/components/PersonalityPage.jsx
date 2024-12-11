@@ -76,8 +76,10 @@ const PersonalityPage = () => {
                   <button
                     key={type}
                     onClick={() => handleSelect(type)}
-                    className={`py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-colors text-center text-lg ${
-                      selectedPersonality === type ? 'bg-[#0066FF] text-white' : ''
+                    className={`py-3 px-4 bg-transparent border border-[#2A2A2F] rounded-lg hover:border-gray-600 transition-all duration-300 text-center text-lg ${
+                      selectedPersonality === type 
+                        ? 'bg-[#0066FF] text-white scale-105 shadow-[0_0_30px_rgba(0,102,255,0.3)] border-[#0066FF]' 
+                        : 'hover:scale-102 hover:shadow-lg'
                     }`}
                   >
                     {type}
@@ -90,7 +92,12 @@ const PersonalityPage = () => {
 
         <div className="mt-8 text-sm">
           Don't know what your personality is?{' '}
-          <a href="#" className="text-blue-500 hover:text-blue-400">Take a personality test</a>
+          <button 
+            onClick={() => navigate('/personality-quiz')} 
+            className="text-blue-500 hover:text-blue-400 hover:underline"
+          >
+            Take a personality test
+          </button>
         </div>
       </div>
 
