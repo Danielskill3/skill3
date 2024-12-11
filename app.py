@@ -16,13 +16,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # CORS Configuration
-CORS(app, 
-     resources={r"/*": {
-         "origins": ["http://localhost:3000", "https://skill3-frontend-1.onrender.com", "https://skill3.onrender.com"],
-         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         "allow_headers": ["Content-Type", "Authorization"],
-         "supports_credentials": True
-     }})
+CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "https://skill3-frontend-1.onrender.com", "https://skill3.onrender.com"], "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"], "allow_headers": ["Content-Type", "Authorization"], "supports_credentials": True}})
 
 # Database Configuration
 username = urllib.parse.quote_plus(os.getenv('MONGODB_USERNAME'))
@@ -192,6 +186,63 @@ def save_school():
         # Insert new school into the database
         mongo.db.schools.insert_one(data)
         return jsonify({'message': 'School saved successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Endpoint to analyze personality
+@app.route('/api/analyze-personality', methods=['POST'])
+def analyze_personality():
+    try:
+        data = request.json
+        answers = data.get('answers')
+        
+        # Count the occurrences of each personality dimension
+        dimensions = {
+            'E': 0, 'I': 0,  # Extraversion vs. Introversion
+            'S': 0, 'N': 0,  # Sensing vs. Intuition
+            'T': 0, 'F': 0,  # Thinking vs. Feeling
+            'J': 0, 'P': 0   # Judging vs. Perceiving
+        }
+        
+        # Count the responses
+        for answer in answers.values():
+            if answer in dimensions:
+                dimensions[answer] += 1
+        
+        # Determine the personality type
+        personality_type = ''
+        personality_type += 'E' if dimensions['E'] >= dimensions['I'] else 'I'
+        personality_type += 'S' if dimensions['S'] >= dimensions['N'] else 'N'
+        personality_type += 'T' if dimensions['T'] >= dimensions['F'] else 'F'
+        personality_type += 'J' if dimensions['J'] >= dimensions['P'] else 'P'
+        
+        # Map the type code to a personality name
+        personality_names = {
+            'ISTJ': 'Logistician',
+            'ISFJ': 'Defender',
+            'INFJ': 'Advocate',
+            'INTJ': 'Architect',
+            'ISTP': 'Virtuoso',
+            'ISFP': 'Adventurer',
+            'INFP': 'Mediator',
+            'INTP': 'Logician',
+            'ESTP': 'Entrepreneur',
+            'ESFP': 'Entertainer',
+            'ENFP': 'Campaigner',
+            'ENTP': 'Debater',
+            'ESTJ': 'Executive',
+            'ESFJ': 'Consul',
+            'ENFJ': 'Protagonist',
+            'ENTJ': 'Commander'
+        }
+        
+        personality_name = personality_names.get(personality_type, personality_type)
+        
+        return jsonify({
+            'personality': personality_name,
+            'type': personality_type
+        }), 200
+        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
